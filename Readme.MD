@@ -2,6 +2,8 @@
 
 A lightweight, easy-to-use JSON parsing and generation library for Eiffel.
 
+AI NOTE: Most code was generated interactively using Claude Sonnet 4.5 with minor mods applied by hand. Additional pushes forward with this library will use the same method.
+
 [![Language](https://img.shields.io/badge/language-Eiffel-blue.svg)](https://www.eiffel.org/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 

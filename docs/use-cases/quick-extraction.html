@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIMPLE_JSON - Use Case: Quick Value Extraction</title>
+    <style>
+        body {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        
+        h2 {
+            color: #34495e;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        
+        h3 {
+            color: #34495e;
+            margin-top: 20px;
+        }
+        
+        pre {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+        }
+        
+        code {
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+        }
+        
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .tip {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 12px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .warning {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 12px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        nav {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 30px;
+        }
+        
+        nav a {
+            color: #3498db;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+        
+        nav a:hover {
+            text-decoration: underline;
+        }
+        
+        .back-link {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="../index.html">Home</a>
+        <a href="../quick-start.html">Quick Start</a>
+        <a href="index.html">Use Cases</a>
+    </nav>
+
+    <h1>Use Case 1: Quick Value Extraction</h1>
+    
+    <h2 id="overview">Overview</h2>
+    <p>This use case demonstrates the simplest way to extract a single value from a JSON string when you know the exact key you're looking for. Perfect for quick one-off extractions where you don't need to work with the full JSON structure.</p>
+    
+    <p><strong>When to use this:</strong></p>
+    <ul>
+        <li>You need just one or two values from a JSON response</li>
+        <li>The JSON structure is simple (flat, not deeply nested)</li>
+        <li>You want the absolute simplest code with minimal setup</li>
+        <li>Performance isn't critical (each call re-parses the JSON)</li>
+    </ul>
+    
+    <h2 id="the-problem">The Problem</h2>
+    <p>You receive a JSON string from an API, configuration file, or external source, and you need to extract a single value quickly without creating intermediate objects or writing lots of boilerplate code.</p>
+    
+    <p><strong>Example scenario:</strong> You call a weather API and receive:</p>
+    <pre><code>{
+  "city": "Atlanta",
+  "temperature": 75,
+  "conditions": "Sunny",
+  "humidity": 65
+}</code></pre>
+    
+    <p>You just need the temperature value, nothing else.</p>
+    
+    <h2 id="the-solution">The Solution</h2>
+    <p>Use the <code>json.string()</code>, <code>json.integer()</code>, <code>json.boolean()</code>, or <code>json.real()</code> methods for one-line extraction:</p>
+    
+    <pre><code class="eiffel">local
+    json: JSON
+    json_text: STRING
+    city: detachable STRING
+    temperature: INTEGER
+    is_sunny: BOOLEAN
+    humidity: REAL_64
+do
+    create json
+    json_text := "{%"city%": %"Atlanta%", %"temperature%": 75, %"conditions%": %"Sunny%", %"humidity%": 65.5}"
+    
+    -- Extract values in one line each
+    city := json.string (json_text, "city")                    -- Returns "Atlanta"
+    temperature := json.integer (json_text, "temperature")     -- Returns 75
+    humidity := json.real (json_text, "humidity")              -- Returns 65.5
+    
+    -- Use the values
+    if attached city as c then
+        print ("City: " + c + "%N")
+        print ("Temperature: " + temperature.out + "°F%N")
+        print ("Humidity: " + humidity.out + "%%%N")
+    end
+end</code></pre>
+    
+    <h2 id="explanation">Explanation</h2>
+    
+    <h3>How It Works</h3>
+    <ol>
+        <li><strong>Create JSON instance:</strong> <code>create json</code> gives you access to the facade</li>
+        <li><strong>Call extraction method:</strong> Each <code>json.TYPE(json_text, "key")</code> call:
+            <ul>
+                <li>Parses the JSON string</li>
+                <li>Extracts the value at the specified key</li>
+                <li>Returns it with the appropriate type</li>
+            </ul>
+        </li>
+        <li><strong>Handle the result:</strong> Use the value directly or check for Void (for string)</li>
+    </ol>
+    
+    <h3>Return Values</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Method</th>
+                <th>Return Type</th>
+                <th>Returns if Key Missing</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>json.string(...)</code></td>
+                <td><code>detachable STRING</code></td>
+                <td><code>Void</code></td>
+            </tr>
+            <tr>
+                <td><code>json.integer(...)</code></td>
+                <td><code>INTEGER</code></td>
+                <td><code>0</code></td>
+            </tr>
+            <tr>
+                <td><code>json.boolean(...)</code></td>
+                <td><code>BOOLEAN</code></td>
+                <td><code>False</code></td>
+            </tr>
+            <tr>
+                <td><code>json.real(...)</code></td>
+                <td><code>REAL_64</code></td>
+                <td><code>0.0</code></td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <div class="tip">
+        <strong>💡 Tip:</strong> Strings return <code>Void</code> when the key is missing, so always use <code>attached</code> checks. Numeric types return default values (0, 0.0, False) which are safe to use directly.
+    </div>
+    
+    <div class="note">
+        <strong>⚠️ Performance Note:</strong> Each method call re-parses the JSON string. If you need multiple values, consider using <a href="query-interface.html">Use Case 2: Query Interface</a> instead.
+    </div>
+    
+    <h2 id="complete-example">Complete Example</h2>
+    <p>Here's a real-world example processing an API response:</p>
+    
+    <pre><code class="eiffel">class
+    WEATHER_CLIENT
+
+create
+    make
+
+feature {NONE} -- Initialization
+
+    make
+            -- Fetch and display weather information
+        local
+            json: JSON
+            api_response: STRING
+            city: detachable STRING
+            temp: INTEGER
+            conditions: detachable STRING
+            humidity: REAL_64
+        do
+            create json
+            
+            -- Simulate API response (in real code, this comes from HTTP request)
+            api_response := get_weather_api_response
+            
+            -- Extract values using one-line methods
+            city := json.string (api_response, "city")
+            temp := json.integer (api_response, "temperature")
+            conditions := json.string (api_response, "conditions")
+            humidity := json.real (api_response, "humidity")
+            
+            -- Display results
+            display_weather (city, temp, conditions, humidity)
+        end
+
+feature {NONE} -- Implementation
+
+    get_weather_api_response: STRING
+            -- Simulate API call (replace with real HTTP request)
+        do
+            Result := "{%"city%": %"Atlanta%", %"temperature%": 75, %"conditions%": %"Sunny%", %"humidity%": 65.5}"
+        end
+
+    display_weather (a_city: detachable STRING; a_temp: INTEGER; a_conditions: detachable STRING; a_humidity: REAL_64)
+            -- Display weather information
+        do
+            print ("Weather Report%N")
+            print ("===============%N")
+            
+            if attached a_city as city then
+                print ("Location: " + city + "%N")
+            end
+            
+            print ("Temperature: " + a_temp.out + "°F%N")
+            
+            if attached a_conditions as cond then
+                print ("Conditions: " + cond + "%N")
+            end
+            
+            print ("Humidity: " + a_humidity.out + "%%%N")
+        end
+
+end</code></pre>
+    
+    <h2 id="when-not-to-use">When NOT to Use This Approach</h2>
+    <ul>
+        <li><strong>Multiple extractions:</strong> If you need 5+ values, use the <a href="query-interface.html">Query Interface</a> to parse once</li>
+        <li><strong>Nested data:</strong> For deep nesting, use <a href="path-navigation.html">Path Navigation</a></li>
+        <li><strong>Complex manipulation:</strong> If you need to modify the JSON, use the <a href="full-api.html">Full API</a></li>
+        <li><strong>Performance-critical:</strong> Avoid re-parsing in tight loops</li>
+    </ul>
+    
+    <h2 id="variations">Common Variations</h2>
+    
+    <h3>Handling Missing Keys Gracefully</h3>
+    <pre><code class="eiffel">-- Provide default value for missing keys
+city := json.string (json_text, "city")
+display_city := if attached city as c then c else "Unknown" end
+
+-- Or check explicitly
+if attached json.string (json_text, "optional_field") as value then
+    process_optional_value (value)
+else
+    -- Key doesn't exist, skip processing
+end</code></pre>
+    
+    <h3>Multiple Values (Still Simple)</h3>
+    <pre><code class="eiffel">-- Extract 2-3 values - still reasonable
+name := json.string (config_json, "app_name")
+port := json.integer (config_json, "port")
+debug_mode := json.boolean (config_json, "debug")
+
+-- More than 3-4? Consider query interface instead</code></pre>
+    
+    <h2 id="related">Related Use Cases</h2>
+    <ul>
+        <li><a href="query-interface.html">Use Case 2: Query Interface for Multiple Extractions</a> - Parse once, extract many times</li>
+        <li><a href="path-navigation.html">Use Case 3: Nested Structure Navigation</a> - Access deeply nested values</li>
+        <li><a href="validation.html">Use Case 6: Validation Before Processing</a> - Check JSON validity first</li>
+        <li><a href="error-handling.html">Use Case 7: Error Handling Patterns</a> - Handle invalid JSON safely</li>
+    </ul>
+    
+    <div class="back-link">
+        <a href="index.html">← Back to Use Cases</a>
+    </div>
+</body>
+</html>
+```
+
+---
+
+## **Step 4: Test It in Your Browser**
+
+Open the file directly:
+```
+D:\prod\simple_json\docs\use-cases\quick-extraction.html

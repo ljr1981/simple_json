@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIMPLE_JSON - Use Case: Path Navigation</title>
+    <style>
+        body {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        
+        h2 {
+            color: #34495e;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        
+        h3 {
+            color: #34495e;
+            margin-top: 20px;
+        }
+        
+        pre {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+        }
+        
+        code {
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+        }
+        
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .tip {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 12px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .warning {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 12px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        nav {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 30px;
+        }
+        
+        nav a {
+            color: #3498db;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+        
+        nav a:hover {
+            text-decoration: underline;
+        }
+        
+        .back-link {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="../index.html">Home</a>
+        <a href="../quick-start.html">Quick Start</a>
+        <a href="index.html">Use Cases</a>
+    </nav>
+
+    <h1 id="use-case-path-navigation">Use Case 2: Path Navigation for Nested Structures</h1>
+    
+    <h2 id="overview">Overview</h2>
+    <p>Path navigation allows you to access deeply nested JSON values using intuitive dot notation, eliminating the need for multiple <code>if attached</code> checks and intermediate object references.</p>
+    
+    <p><strong>When to use this:</strong></p>
+    <ul>
+        <li>You need to access values several levels deep in the JSON structure</li>
+        <li>You want clean, readable code without nested if-statements</li>
+        <li>The path to the value is known at compile time</li>
+        <li>You want to avoid null-checking at every level</li>
+    </ul>
+    
+    <h2 id="the-problem">The Problem</h2>
+    <p>You receive complex nested JSON and need to extract a value that's several levels deep. Traditional approaches require checking each level for existence:</p>
+    
+    <pre><code>{
+  "user": {
+    "profile": {
+      "contact": {
+        "email": "alice@example.com",
+        "phone": "+1-555-0123"
+      },
+      "location": {
+        "city": "Atlanta",
+        "state": "GA",
+        "zip": 30303
+      }
+    }
+  }
+}</code></pre>
+    
+    <p><strong>Without path navigation, you'd write:</strong></p>
+    <pre><code class="eiffel">if attached obj.object ("user") as user then
+    if attached user.object ("profile") as profile then
+        if attached profile.object ("location") as location then
+            city := location.string ("city")  -- Finally!
+        end
+    end
+end</code></pre>
+    
+    <h2 id="the-solution">The Solution</h2>
+    <p>Use path methods with dot notation to navigate directly to the value:</p>
+    
+    <pre><code class="eiffel">local
+    json: JSON
+    json_text: STRING
+    email: detachable STRING
+    city: detachable STRING
+    zip: INTEGER
+do
+    create json
+    json_text := "{%"user%": {%"profile%": {%"contact%": {%"email%": %"alice@example.com%"}, %"location%": {%"city%": %"Atlanta%", %"zip%": 30303}}}}"
+    
+    -- Navigate directly using dot notation
+    email := json.path_string (json_text, "user.profile.contact.email")
+    city := json.path_string (json_text, "user.profile.location.city")
+    zip := json.path_integer (json_text, "user.profile.location.zip")
+    
+    -- Use the values
+    if attached email as e and attached city as c then
+        print ("Email: " + e + "%N")
+        print ("Location: " + c + ", ZIP: " + zip.out + "%N")
+    end
+end</code></pre>
+    
+    <h2 id="explanation">Explanation</h2>
+    
+    <h3>Path Syntax</h3>
+    <p>Paths use dot notation to specify the route through nested objects:</p>
+    <ul>
+        <li><code>"user"</code> - Access top-level key</li>
+        <li><code>"user.profile"</code> - Go one level deeper</li>
+        <li><code>"user.profile.contact.email"</code> - Navigate multiple levels</li>
+    </ul>
+    
+    <h3>Available Path Methods</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Method</th>
+                <th>Return Type</th>
+                <th>Example Path</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>path_string</code></td>
+                <td><code>detachable STRING</code></td>
+                <td><code>"user.name"</code></td>
+            </tr>
+            <tr>
+                <td><code>path_integer</code></td>
+                <td><code>INTEGER</code></td>
+                <td><code>"config.port"</code></td>
+            </tr>
+            <tr>
+                <td><code>path_boolean</code></td>
+                <td><code>BOOLEAN</code></td>
+                <td><code>"settings.enabled"</code></td>
+            </tr>
+            <tr>
+                <td><code>path_real</code></td>
+                <td><code>REAL_64</code></td>
+                <td><code>"data.metrics.score"</code></td>
+            </tr>
+            <tr>
+                <td><code>path_exists</code></td>
+                <td><code>BOOLEAN</code></td>
+                <td><code>"user.email"</code></td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <div class="tip">
+        <strong>💡 Tip:</strong> Use <code>path_exists</code> to check if a path is valid before extracting values, especially for optional fields.
+    </div>
+    
+    <h2 id="complete-example">Complete Example: API Response Processing</h2>
+    
+    <pre><code class="eiffel">class
+    USER_PROFILE_PROCESSOR
+
+create
+    make
+
+feature {NONE} -- Initialization
+
+    make
+            -- Process user profile from API
+        local
+            json: JSON
+            api_response: STRING
+            name, email, city, state: detachable STRING
+            age, zip: INTEGER
+            verified: BOOLEAN
+        do
+            create json
+            api_response := get_api_response
+            
+            -- Extract user information using path navigation
+            name := json.path_string (api_response, "user.profile.name")
+            email := json.path_string (api_response, "user.profile.contact.email")
+            age := json.path_integer (api_response, "user.profile.age")
+            verified := json.path_boolean (api_response, "user.profile.verified")
+            
+            -- Extract location information
+            city := json.path_string (api_response, "user.profile.location.city")
+            state := json.path_string (api_response, "user.profile.location.state")
+            zip := json.path_integer (api_response, "user.profile.location.zip")
+            
+            -- Display results
+            display_profile (name, email, age, verified, city, state, zip)
+        end
+
+feature {NONE} -- Implementation
+
+    get_api_response: STRING
+            -- Simulate API response
+        do
+            Result := "[
+                {
+                    "user": {
+                        "profile": {
+                            "name": "Alice Johnson",
+                            "age": 30,
+                            "verified": true,
+                            "contact": {
+                                "email": "alice@example.com",
+                                "phone": "+1-555-0123"
+                            },
+                            "location": {
+                                "city": "Atlanta",
+                                "state": "GA",
+                                "zip": 30303
+                            }
+                        }
+                    }
+                }
+            ]"
+        end
+
+    display_profile (a_name, a_email, a_city, a_state: detachable STRING; 
+                     a_age, a_zip: INTEGER; a_verified: BOOLEAN)
+            -- Display user profile
+        do
+            print ("User Profile%N")
+            print ("=============%N")
+            
+            if attached a_name as name then
+                print ("Name: " + name)
+                if a_verified then
+                    print (" ✓ Verified")
+                end
+                print ("%N")
+            end
+            
+            if attached a_email as email then
+                print ("Email: " + email + "%N")
+            end
+            
+            print ("Age: " + a_age.out + "%N")
+            
+            if attached a_city as city and attached a_state as state then
+                print ("Location: " + city + ", " + state + " " + a_zip.out + "%N")
+            end
+        end
+
+end</code></pre>
+    
+    <h2 id="conditional-access">Conditional Access Pattern</h2>
+    <p>Check if optional paths exist before accessing them:</p>
+    
+    <pre><code class="eiffel">-- Check if optional field exists
+if json.path_exists (json_text, "user.profile.photo") then
+    photo_url := json.path_string (json_text, "user.profile.photo")
+    download_photo (photo_url)
+else
+    use_default_photo
+end
+
+-- Conditional extraction
+if json.path_exists (json_text, "settings.advanced.timeout") then
+    timeout := json.path_integer (json_text, "settings.advanced.timeout")
+else
+    timeout := default_timeout
+end</code></pre>
+    
+    <h2 id="advantages">Advantages Over Manual Navigation</h2>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Aspect</th>
+                <th>Manual Navigation</th>
+                <th>Path Navigation</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Code Length</strong></td>
+                <td>10+ lines with nested ifs</td>
+                <td>1 line</td>
+            </tr>
+            <tr>
+                <td><strong>Readability</strong></td>
+                <td>Hard to follow nesting</td>
+                <td>Clear path to value</td>
+            </tr>
+            <tr>
+                <td><strong>Maintainability</strong></td>
+                <td>Change requires updating multiple lines</td>
+                <td>Change path string</td>
+            </tr>
+            <tr>
+                <td><strong>Null Safety</strong></td>
+                <td>Must check at each level</td>
+                <td>Handled automatically</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <div class="note">
+        <strong>⚠️ Performance Note:</strong> Each path method re-parses the JSON. For multiple paths in the same document, consider the <a href="query-interface.html">Query Interface</a>.
+    </div>
+    
+    <h2 id="edge-cases">Handling Edge Cases</h2>
+    
+    <h3>Invalid Paths</h3>
+    <pre><code class="eiffel">-- Path doesn't exist - returns default value
+value := json.path_integer (json_text, "nonexistent.path")  -- Returns 0
+text := json.path_string (json_text, "missing.key")         -- Returns Void</code></pre>
+    
+    <h3>Partial Paths</h3>
+    <pre><code class="eiffel">-- If "user" exists but "user.profile" doesn't, returns safely
+email := json.path_string (json_text, "user.profile.email")  -- Returns Void, no error</code></pre>
+    
+    <h2 id="when-not-to-use">When NOT to Use Path Navigation</h2>
+    <ul>
+        <li><strong>Dynamic paths:</strong> If the path is constructed at runtime, use the Full API</li>
+        <li><strong>Array navigation:</strong> Paths don't support array indexing; use Full API for arrays</li>
+        <li><strong>Multiple extractions:</strong> If extracting 5+ values, use Query Interface</li>
+    </ul>
+    
+    <h2 id="related">Related Use Cases</h2>
+    <ul>
+        <li><a href="quick-extraction.html">Use Case 1: Quick Value Extraction</a> - For simple, non-nested values</li>
+        <li><a href="query-interface.html">Use Case 3: Query Interface</a> - For multiple extractions from same document</li>
+        <li><a href="validation.html">Use Case 6: Validation</a> - Validate structure before navigation</li>
+    </ul>
+    
+    <div class="back-link">
+        <a href="index.html">← Back to Use Cases</a>
+    </div>
+</body>
+</html>

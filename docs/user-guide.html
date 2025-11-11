@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIMPLE_JSON - User Guide</title>
+    <style>
+        body {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        
+        h2 {
+            color: #34495e;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+            margin-top: 40px;
+        }
+        
+        h3 {
+            color: #34495e;
+            margin-top: 25px;
+        }
+        
+        nav {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 30px;
+        }
+        
+        nav a {
+            color: #3498db;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+        
+        nav a:hover {
+            text-decoration: underline;
+        }
+        
+        .section {
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .tip {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 12px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        pre {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="quick-start.html">Quick Start</a>
+        <a href="user-guide.html">User Guide</a>
+        <a href="use-cases/index.html">Use Cases</a>
+    </nav>
+
+    <h1>SIMPLE_JSON User Guide</h1>
+
+    <p><em>Comprehensive documentation for the SIMPLE_JSON library</em></p>
+
+    <h2>📖 Table of Contents</h2>
+
+    <div class="section">
+        <h3>Getting Started</h3>
+        <ul>
+            <li><a href="quick-start.html">Quick Start Guide</a></li>
+            <li><a href="#installation">Installation</a></li>
+            <li><a href="#basic-concepts">Basic Concepts</a></li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>Core Features</h3>
+        <ul>
+            <li><a href="use-cases/quick-extraction.html">One-Liner Value Extraction</a></li>
+            <li><a href="use-cases/path-navigation.html">Path Navigation</a></li>
+            <li><a href="use-cases/query-interface.html">Query Interface</a></li>
+            <li><a href="use-cases/building-json.html">Building JSON</a></li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h3>Advanced Topics</h3>
+        <ul>
+            <li><a href="use-cases/validation.html">Validation</a></li>
+            <li><a href="use-cases/error-handling.html">Error Handling</a></li>
+            <li><a href="#performance">Performance Considerations</a></li>
+            <li><a href="#best-practices">Best Practices</a></li>
+        </ul>
+    </div>
+
+    <h2 id="installation">Installation</h2>
+    <p>To use SIMPLE_JSON in your project, add it to your ECF configuration file:</p>
+    <pre>&lt;library name="simple_json" location="$SIMPLE_JSON/simple_json.ecf"/&gt;</pre>
+    <p>Or reference it directly with a path:</p>
+    <pre>&lt;library name="simple_json" location="D:\prod\simple_json\simple_json.ecf"/&gt;</pre>
+
+    <h2 id="basic-concepts">Basic Concepts</h2>
+    <p>SIMPLE_JSON provides multiple levels of abstraction to suit different use cases:</p>
+    
+    <h3>Architecture Overview</h3>
+    <p>The library is organized as a facade with these layers:</p>
+    <ul>
+        <li><strong>One-Liners:</strong> Quick extraction of single values (<code>json.string</code>, <code>json.integer</code>)</li>
+        <li><strong>Path Navigation:</strong> Access nested structures intuitively (<code>json.path_string</code>)</li>
+        <li><strong>Query Interface:</strong> Parse once, extract many times (<code>json.query</code>)</li>
+        <li><strong>Builder Pattern:</strong> Fluent interface for construction (<code>json.build</code>)</li>
+        <li><strong>Full API:</strong> Complete control for complex scenarios (<code>json.parse</code>)</li>
+    </ul>
+
+    <h3>Design Philosophy</h3>
+    <ul>
+        <li><strong>Graceful Degradation:</strong> No exceptions, returns safe defaults</li>
+        <li><strong>Void Safety:</strong> Proper handling of optional values</li>
+        <li><strong>Progressive Disclosure:</strong> Simple things are simple, complex things are possible</li>
+        <li><strong>Self-Documenting:</strong> Feature notes include examples and use cases</li>
+    </ul>
+
+    <h2 id="performance">Performance Considerations</h2>
+    
+    <h3>Parse Performance</h3>
+    <p>Understanding parsing costs helps you choose the right approach:</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Approach</th>
+                <th>Parse Count</th>
+                <th>Best For</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>One-liners</td>
+                <td>N times (once per call)</td>
+                <td>1-3 values</td>
+            </tr>
+            <tr>
+                <td>Query Interface</td>
+                <td>1 time</td>
+                <td>4-20 values</td>
+            </tr>
+            <tr>
+                <td>Full API</td>
+                <td>1 time</td>
+                <td>Complex manipulation</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>Memory Considerations</h3>
+    <ul>
+        <li><strong>String Allocation:</strong> Each parse creates new string objects</li>
+        <li><strong>Object Lifetime:</strong> Parsed objects persist until garbage collected</li>
+        <li><strong>Reuse Patterns:</strong> Query interface reuses parsed structure</li>
+    </ul>
+
+    <h3>Performance Tips</h3>
+    
+    <div class="tip">
+        <strong>✅ DO:</strong>
+        <ul>
+            <li>Use query interface for multiple extractions</li>
+            <li>Validate complex JSON before parsing in production</li>
+            <li>Reuse JSON objects when modifying existing data</li>
+            <li>Use path methods instead of nested if-attached chains</li>
+        </ul>
+    </div>
+
+    <div class="warning">
+        <strong>❌ AVOID:</strong>
+        <ul>
+            <li>Repeated one-liner calls on the same JSON string</li>
+            <li>Parsing JSON in tight loops without caching</li>
+            <li>Building large JSON strings manually with concatenation</li>
+            <li>Parsing unvalidated external JSON in performance-critical paths</li>
+        </ul>
+    </div>
+
+    <h3>Benchmarking Example</h3>
+    <pre>-- SLOW: Parses 5 times
+name := json.string (json_text, "name")
+age := json.integer (json_text, "age")
+city := json.string (json_text, "city")
+email := json.string (json_text, "email")
+verified := json.boolean (json_text, "verified")
+
+-- FAST: Parses once
+query := json.query (json_text)
+name := query.string ("name")
+age := query.integer ("age")
+city := query.string ("city")
+email := query.string ("email")
+verified := query.boolean ("verified")</pre>
+
+    <div class="tip">
+        <strong>💡 Rule of Thumb:</strong> Query interface is 5-10x faster than repeated one-liners for 5+ extractions.
+    </div>
+
+    <h2 id="best-practices">Best Practices</h2>
+
+    <h3>1. Choose the Right Abstraction Level</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Scenario</th>
+                <th>Use</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Extract 1-2 values</td>
+                <td>One-liner methods</td>
+            </tr>
+            <tr>
+                <td>Navigate nested structure</td>
+                <td>Path methods</td>
+            </tr>
+            <tr>
+                <td>Extract 5+ values</td>
+                <td>Query interface</td>
+            </tr>
+            <tr>
+                <td>Build simple JSON</td>
+                <td>Builder pattern</td>
+            </tr>
+            <tr>
+                <td>Conditional fields</td>
+                <td>Object API</td>
+            </tr>
+            <tr>
+                <td>Complex manipulation</td>
+                <td>Full API</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>2. Always Validate External Input</h3>
+    <pre>-- Always validate user input, API responses, uploaded files
+if json.is_valid (external_input) then
+    obj := json.parse (external_input)
+    process (obj)
+else
+    show_error ("Invalid JSON")
+end</pre>
+
+    <h3>3. Handle Missing Keys Gracefully</h3>
+    <pre>-- Check for existence before using
+if json.path_exists (json_text, "user.email") then
+    email := json.path_string (json_text, "user.email")
+    send_notification (email)
+end
+
+-- Or provide defaults
+timeout := if obj.has_key ("timeout") then obj.integer ("timeout") else 30 end</pre>
+
+    <h3>4. Use Appropriate Error Handling</h3>
+    <pre>-- For production: comprehensive error handling
+result := json.validate (user_input)
+if result.valid then
+    process_json (json.parse (user_input))
+else
+    if attached result.error as err then
+        log_error (err)
+        notify_user ("Invalid JSON: " + err)
+    end
+end</pre>
+
+    <h3>5. Build JSON Programmatically</h3>
+    <pre>-- DON'T manually concatenate
+json_string := "{\"name\":\"" + name + "\"}"  -- ❌ Error-prone
+
+-- DO use the builder
+json_string := json.build
+    .put_string ("name", name)
+    .to_string  -- ✅ Correct</pre>
+
+    <h3>6. Test with Edge Cases</h3>
+    <ul>
+        <li><strong>Empty JSON:</strong> <code>{}</code>, <code>[]</code></li>
+        <li><strong>Missing keys:</strong> Optional fields</li>
+        <li><strong>Wrong types:</strong> Number where string expected</li>
+        <li><strong>Null values:</strong> Treated as missing</li>
+        <li><strong>Invalid syntax:</strong> Malformed JSON</li>
+        <li><strong>Very large JSON:</strong> Performance testing</li>
+    </ul>
+
+    <h3>7. Document Expected Structure</h3>
+    <pre>process_api_response (json_text: STRING)
+        -- Process API response
+        -- Expected JSON structure:
+        -- {
+        --   "status": "success",
+        --   "data": {
+        --     "id": 123,
+        --     "name": "Alice",
+        --     "email": "alice@example.com"
+        --   }
+        -- }
+    require
+        valid_json: json.is_valid (json_text)
+    do
+        -- Implementation
+    end</pre>
+
+    <h3>8. Use Path Methods for Readability</h3>
+    <pre>-- Instead of nested if-attached:
+if attached obj.object ("user") as user then
+    if attached user.object ("address") as addr then
+        city := addr.string ("city")
+    end
+end
+
+-- Use path notation:
+city := json.path_string (json_text, "user.address.city")</pre>
+
+    <h3>9. Leverage EIS Documentation</h3>
+    <ul>
+        <li>Press <kbd>F1</kbd> on any JSON feature in EiffelStudio</li>
+        <li>Browse use cases for patterns and examples</li>
+        <li>Check feature notes for inline documentation</li>
+    </ul>
+
+    <h3>10. Consider File Operations</h3>
+    <pre>-- Load from file
+config := json.from_file ("config.json")
+if attached config as cfg then
+    process_config (cfg)
+end
+
+-- Save to file
+json.to_file (data_object, "output.json")</pre>
+
+    <h2>📚 Explore by Use Case</h2>
+    <p>For practical examples and patterns, visit the <a href="use-cases/index.html">Use Cases Library</a>.</p>
+
+    <h2>🔗 Related Resources</h2>
+    <ul>
+        <li><a href="quick-start.html">Quick Start Guide</a> - Get started in 5 minutes</li>
+        <li><a href="use-cases/index.html">Use Cases Library</a> - Real-world examples</li>
+        <li>EiffelStudio F1 Help - Context-sensitive documentation</li>
+    </ul>
+
+    <hr style="margin: 40px 0;">
+    
+    <p style="text-align: center; color: #6c757d;">
+        <strong>Tip:</strong> Press <kbd>F1</kbd> in EiffelStudio for context-sensitive help
+    </p>
+</body>
+</html>

@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIMPLE_JSON - Use Case: Query Interface</title>
+    <style>
+        body {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        
+        h2 {
+            color: #34495e;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        
+        h3 {
+            color: #34495e;
+            margin-top: 20px;
+        }
+        
+        pre {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+        }
+        
+        code {
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+        }
+        
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .tip {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 12px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .warning {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 12px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        nav {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 30px;
+        }
+        
+        nav a {
+            color: #3498db;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+        
+        nav a:hover {
+            text-decoration: underline;
+        }
+        
+        .back-link {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="../index.html">Home</a>
+        <a href="../quick-start.html">Quick Start</a>
+        <a href="index.html">Use Cases</a>
+    </nav>
+
+    <h1 id="use-case-query-interface">Use Case 3: Query Interface for Multiple Extractions</h1>
+    
+    <h2 id="overview">Overview</h2>
+    <p>The Query Interface provides an efficient way to extract multiple values from the same JSON document by parsing once and querying many times.</p>
+    
+    <p><strong>When to use this:</strong></p>
+    <ul>
+        <li>You need to extract 5+ values from the same JSON document</li>
+        <li>Performance matters (avoid re-parsing)</li>
+        <li>You want clean, organized extraction code</li>
+        <li>The JSON structure is moderately complex</li>
+    </ul>
+    
+    <h2 id="the-problem">The Problem</h2>
+    <p>Using one-liner methods for multiple extractions is inefficient because each call re-parses the entire JSON string:</p>
+    
+    <pre><code class="eiffel">-- INEFFICIENT: Parses JSON 6 times!
+name := json.string (json_text, "name")
+email := json.string (json_text, "email")
+age := json.integer (json_text, "age")
+city := json.string (json_text, "city")
+verified := json.boolean (json_text, "verified")
+score := json.real (json_text, "score")</code></pre>
+    
+    <p>For large JSON documents or frequent operations, this repeated parsing wastes CPU cycles and memory.</p>
+    
+    <h2 id="the-solution">The Solution</h2>
+    <p>Create a query object that parses once, then extract multiple values:</p>
+    
+    <pre><code class="eiffel">local
+    json: JSON
+    query: JSON_QUERY
+    json_text: STRING
+    name, email, city: detachable STRING
+    age: INTEGER
+    verified: BOOLEAN
+    score: REAL_64
+do
+    create json
+    json_text := "{%"name%": %"Alice%", %"email%": %"alice@example.com%", %"age%": 30, %"city%": %"Atlanta%", %"verified%": true, %"score%": 95.5}"
+    
+    -- Parse once
+    query := json.query (json_text)
+    
+    -- Extract many times (no re-parsing!)
+    name := query.string ("name")
+    email := query.string ("email")
+    age := query.integer ("age")
+    city := query.string ("city")
+    verified := query.boolean ("verified")
+    score := query.real ("score")
+    
+    -- Use the values
+    if attached name as n and attached email as e then
+        print ("User: " + n + " (" + e + ")%N")
+        print ("Age: " + age.out + ", Score: " + score.out + "%N")
+        print ("Verified: " + verified.out + "%N")
+    end
+end</code></pre>
+    
+    <h2 id="explanation">Explanation</h2>
+    
+    <h3>How It Works</h3>
+    <ol>
+        <li><strong>Create query object:</strong> <code>query := json.query(json_text)</code>
+            <ul>
+                <li>Parses JSON once</li>
+                <li>Stores parsed structure internally</li>
+            </ul>
+        </li>
+        <li><strong>Query multiple times:</strong> Each <code>query.TYPE("key")</code> call:
+            <ul>
+                <li>Extracts from already-parsed structure</li>
+                <li>No re-parsing overhead</li>
+                <li>Fast and efficient</li>
+            </ul>
+        </li>
+    </ol>
+    
+    <h3>Available Query Methods</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Method</th>
+                <th>Return Type</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>string(key)</code></td>
+                <td><code>detachable STRING</code></td>
+                <td>Extract string value</td>
+            </tr>
+            <tr>
+                <td><code>integer(key)</code></td>
+                <td><code>INTEGER</code></td>
+                <td>Extract integer value</td>
+            </tr>
+            <tr>
+                <td><code>boolean(key)</code></td>
+                <td><code>BOOLEAN</code></td>
+                <td>Extract boolean value</td>
+            </tr>
+            <tr>
+                <td><code>real(key)</code></td>
+                <td><code>REAL_64</code></td>
+                <td>Extract real value</td>
+            </tr>
+            <tr>
+                <td><code>object(key)</code></td>
+                <td><code>detachable SIMPLE_JSON_OBJECT</code></td>
+                <td>Extract nested object</td>
+            </tr>
+            <tr>
+                <td><code>array(key)</code></td>
+                <td><code>detachable SIMPLE_JSON_ARRAY</code></td>
+                <td>Extract array</td>
+            </tr>
+            <tr>
+                <td><code>exists(key)</code></td>
+                <td><code>BOOLEAN</code></td>
+                <td>Check if key exists</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <div class="tip">
+        <strong>💡 Performance Tip:</strong> Query interface is 5-10x faster than repeated one-liner calls for multiple extractions.
+    </div>
+    
+    <h2 id="complete-example">Complete Example: Configuration Loader</h2>
+    
+    <pre><code class="eiffel">class
+    CONFIG_LOADER
+
+create
+    make
+
+feature {NONE} -- Initialization
+
+    make
+            -- Load and process configuration
+        local
+            json: JSON
+            query: JSON_QUERY
+            config_text: STRING
+        do
+            create json
+            config_text := load_config_file
+            
+            -- Create query object (parse once)
+            query := json.query (config_text)
+            
+            -- Extract all configuration values
+            load_server_config (query)
+            load_database_config (query)
+            load_feature_flags (query)
+            load_logging_config (query)
+            
+            print ("Configuration loaded successfully%N")
+        end
+
+feature {NONE} -- Configuration Loading
+
+    load_server_config (query: JSON_QUERY)
+            -- Load server configuration
+        do
+            server_host := query.string ("server_host")
+            server_port := query.integer ("server_port")
+            use_ssl := query.boolean ("use_ssl")
+            max_connections := query.integer ("max_connections")
+            
+            if attached server_host as host then
+                print ("Server: " + host + ":" + server_port.out + "%N")
+            end
+        end
+
+    load_database_config (query: JSON_QUERY)
+            -- Load database configuration
+        do
+            if query.exists ("database_url") then
+                database_url := query.string ("database_url")
+                connection_pool_size := query.integer ("connection_pool_size")
+                query_timeout := query.real ("query_timeout")
+            end
+        end
+
+    load_feature_flags (query: JSON_QUERY)
+            -- Load feature flags
+        do
+            enable_analytics := query.boolean ("enable_analytics")
+            enable_debug := query.boolean ("enable_debug")
+            enable_caching := query.boolean ("enable_caching")
+            
+            print ("Features enabled: Analytics=" + enable_analytics.out + 
+                   ", Debug=" + enable_debug.out + 
+                   ", Caching=" + enable_caching.out + "%N")
+        end
+
+    load_logging_config (query: JSON_QUERY)
+            -- Load logging configuration
+        do
+            log_level := query.string ("log_level")
+            log_file := query.string ("log_file")
+            max_log_size := query.integer ("max_log_size")
+        end
+
+feature {NONE} -- Implementation
+
+    load_config_file: STRING
+            -- Load configuration from file (simplified)
+        do
+            Result := "[
+                {
+                    "server_host": "localhost",
+                    "server_port": 8080,
+                    "use_ssl": false,
+                    "max_connections": 100,
+                    "database_url": "postgresql://localhost/mydb",
+                    "connection_pool_size": 10,
+                    "query_timeout": 30.0,
+                    "enable_analytics": true,
+                    "enable_debug": false,
+                    "enable_caching": true,
+                    "log_level": "info",
+                    "log_file": "/var/log/app.log",
+                    "max_log_size": 10485760
+                }
+            ]"
+        end
+
+feature {NONE} -- Attributes
+
+    server_host, database_url, log_level, log_file: detachable STRING
+    server_port, max_connections, connection_pool_size, max_log_size: INTEGER
+    use_ssl, enable_analytics, enable_debug, enable_caching: BOOLEAN
+    query_timeout: REAL_64
+
+end</code></pre>
+    
+    <h2 id="nested-objects">Working with Nested Objects</h2>
+    <p>Query interface can extract nested objects and arrays for further processing:</p>
+    
+    <pre><code class="eiffel">query := json.query (json_text)
+
+-- Extract nested object
+if attached query.object ("user") as user_obj then
+    -- Now work with the nested object using Full API
+    name := user_obj.string ("name")
+    age := user_obj.integer ("age")
+end
+
+-- Extract array
+if attached query.array ("items") as items_arr then
+    -- Process array
+    across 1 |..| items_arr.count as i loop
+        item_value := items_arr.integer_at (i.item)
+        process_item (item_value)
+    end
+end</code></pre>
+    
+    <h2 id="conditional-extraction">Conditional Extraction Pattern</h2>
+    <p>Check for existence before extracting optional fields:</p>
+    
+    <pre><code class="eiffel">query := json.query (config_text)
+
+-- Required fields
+app_name := query.string ("app_name")
+
+-- Optional fields with defaults
+if query.exists ("timeout") then
+    timeout := query.integer ("timeout")
+else
+    timeout := 30  -- default
+end
+
+if query.exists ("retry_count") then
+    retry_count := query.integer ("retry_count")
+else
+    retry_count := 3  -- default
+end
+
+-- Optional features
+if query.exists ("features") then
+    if attached query.object ("features") as features then
+        -- Process optional features
+    end
+end</code></pre>
+    
+    <h2 id="advantages">Advantages Over Other Methods</h2>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Aspect</th>
+                <th>One-Liners</th>
+                <th>Query Interface</th>
+                <th>Full API</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Parse Count</strong></td>
+                <td>N times (once per value)

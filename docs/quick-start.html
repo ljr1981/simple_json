@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIMPLE_JSON - Quick Start</title>
+    <style>
+        body {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        
+        h2 {
+            color: #34495e;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        
+        pre {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+        }
+        
+        .tip {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 12px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        nav {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 30px;
+        }
+        
+        nav a {
+            color: #3498db;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+        
+        nav a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="quick-start.html">Quick Start</a>
+        <a href="user-guide.html">User Guide</a>
+        <a href="use-cases/index.html">Use Cases</a>
+    </nav>
+
+    <h1>Quick Start Guide</h1>
+
+    <p>Get up and running with SIMPLE_JSON in just 5 minutes!</p>
+
+    <h2>Installation</h2>
+    <p>Add SIMPLE_JSON to your project's ECF file:</p>
+    <pre>&lt;library name="simple_json" location="$SIMPLE_JSON/simple_json.ecf"/&gt;</pre>
+
+    <h2>Basic Usage</h2>
+
+    <h3>1. Extract a Single Value</h3>
+    <pre>local
+    json: JSON
+    name: detachable STRING
+do
+    create json
+    name := json.string ("{\"name\": \"Alice\"}", "name")
+    
+    if attached name as n then
+        print ("Name: " + n)
+    end
+end</pre>
+
+    <h3>2. Access Nested Values</h3>
+    <pre>local
+    json: JSON
+    city: detachable STRING
+do
+    create json
+    city := json.path_string (json_text, "user.address.city")
+    
+    if attached city as c then
+        print ("City: " + c)
+    end
+end</pre>
+
+    <h3>3. Build JSON</h3>
+    <pre>local
+    json: JSON
+    json_string: STRING
+do
+    create json
+    json_string := json.build
+        .put_string ("name", "Bob")
+        .put_integer ("age", 25)
+        .put_boolean ("active", True)
+        .to_string
+    
+    print (json_string)
+    -- Output: {"name":"Bob","age":25,"active":true}
+end</pre>
+
+    <h3>4. Validate JSON</h3>
+    <pre>local
+    json: JSON
+    user_input: STRING
+do
+    create json
+    user_input := get_user_input
+    
+    if json.is_valid (user_input) then
+        -- Safe to parse
+        obj := json.parse (user_input)
+    else
+        print ("Invalid JSON!")
+    end
+end</pre>
+
+    <div class="tip">
+        <strong>💡 Next Steps:</strong>
+        <ul>
+            <li>Browse <a href="use-cases/index.html">Use Cases</a> for real-world examples</li>
+            <li>Read the <a href="user-guide.html">User Guide</a> for comprehensive documentation</li>
+            <li>Press <kbd>F1</kbd> in EiffelStudio on any JSON feature for help</li>
+        </ul>
+    </div>
+
+    <h2>Common Patterns</h2>
+
+    <table style="width: 100%; margin-top: 20px; border-collapse: collapse;">
+        <thead>
+            <tr style="background: #f8f9fa;">
+                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6;">Task</th>
+                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #dee2e6;">Method</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="padding: 12px; border-bottom: 1px solid #dee2e6;">Get string value</td>
+                <td style="padding: 12px; border-bottom: 1px solid #dee2e6;"><code>json.string(text, "key")</code></td>
+            </tr>
+            <tr>
+                <td style="padding: 12px; border-bottom: 1px solid #dee2e6;">Get integer value</td>
+                <td style="padding: 12px; border-bottom: 1px solid #dee2e6;"><code>json.integer(text, "key")</code></td>
+            </tr>
+            <tr>
+                <td style="padding: 12px; border-bottom: 1px solid #dee2e6;">Navigate nested</td>
+                <td style="padding: 12px; border-bottom: 1px solid #dee2e6;"><code>json.path_string(text, "a.b.c")</code></td>
+            </tr>
+            <tr>
+                <td style="padding: 12px; border-bottom: 1px solid #dee2e6;">Build JSON</td>
+                <td style="padding: 12px; border-bottom: 1px solid #dee2e6;"><code>json.build.put_string(...).to_string</code></td>
+            </tr>
+            <tr>
+                <td style="padding: 12px; border-bottom: 1px solid #dee2e6;">Validate</td>
+                <td style="padding: 12px; border-bottom: 1px solid #dee2e6;"><code>json.is_valid(text)</code></td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIMPLE_JSON - Use Case: Error Handling</title>
+    <style>
+        body {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        
+        h2 {
+            color: #34495e;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        
+        h3 {
+            color: #34495e;
+            margin-top: 20px;
+        }
+        
+        pre {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+        }
+        
+        code {
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+        }
+        
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .tip {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 12px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .warning {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 12px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        nav {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 30px;
+        }
+        
+        nav a {
+            color: #3498db;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+        
+        nav a:hover {
+            text-decoration: underline;
+        }
+        
+        .back-link {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="../index.html">Home</a>
+        <a href="../quick-start.html">Quick Start</a>
+        <a href="index.html">Use Cases</a>
+    </nav>
+
+    <h1 id="use-case-error-handling">Use Case 7: Error Handling Patterns</h1>
+    
+    <h2 id="overview">Overview</h2>
+    <p>Handle JSON parsing failures, missing keys, and type mismatches gracefully to create robust applications that provide clear feedback and never crash unexpectedly.</p>
+    
+    <p><strong>When to use this:</strong></p>
+    <ul>
+        <li>Processing external or untrusted JSON</li>
+        <li>Building production applications that must handle failures</li>
+        <li>Need to provide meaningful error messages to users</li>
+        <li>Logging and monitoring JSON processing issues</li>
+    </ul>
+    
+    <h2 id="error-philosophy">SIMPLE_JSON Error Philosophy</h2>
+    <p>The library is designed with <strong>graceful degradation</strong> in mind:</p>
+    
+    <ul>
+        <li>✅ No exceptions thrown for missing keys or wrong types</li>
+        <li>✅ Returns safe defaults (Void, 0, False, 0.0)</li>
+        <li>✅ Parse failures return Void with error messages available</li>
+        <li>✅ Void-safe design prevents null pointer issues</li>
+    </ul>
+    
+    <div class="tip">
+        <strong>💡 Design Principle:</strong> SIMPLE_JSON never crashes your application. It returns safe defaults and provides error information when requested.
+    </div>
+    
+    <h2 id="error-scenarios">Common Error Scenarios</h2>
+    
+    <h3>1. Parse Failures (Invalid JSON)</h3>
+    <pre><code class="eiffel">local
+    json: JSON
+    obj: detachable SIMPLE_JSON_OBJECT
+do
+    create json
+    
+    -- Attempt to parse potentially invalid JSON
+    obj := json.parse (untrusted_input)
+    
+    if obj = Void then
+        -- Parse failed
+        if attached json.last_error as err then
+            log_error ("JSON parse failed: " + err)
+            notify_user ("Invalid JSON format: " + err)
+        else
+            log_error ("JSON parse failed with no error message")
+        end
+    else
+        -- Parse succeeded
+        process_json (obj)
+    end
+end</code></pre>
+    
+    <h3>2. Missing Keys</h3>
+    <pre><code class="eiffel">local
+    json: JSON
+    name: detachable STRING
+do
+    create json
+    
+    -- Key might not exist
+    name := json.string (json_text, "name")
+    
+    if attached name as n then
+        print ("Name: " + n + "%N")
+    else
+        -- Key doesn't exist or value isn't a string
+        print ("Name not provided%N")
+        use_default_name
+    end
+end</code></pre>
+    
+    <h3>3. Type Mismatches</h3>
+    <pre><code class="eiffel">local
+    json: JSON
+    age: INTEGER
+do
+    create json
+    
+    -- Value might not be a number
+    age := json.integer (json_text, "age")
+    
+    if age = 0 then
+        -- Could be: missing key, wrong type, or actually zero
+        -- Check if key exists to distinguish
+        obj := json.parse (json_text)
+        if attached obj as o then
+            if not o.has_key ("age") then
+                handle_missing_age
+            else
+                -- Age is 0 or wrong type
+                handle_invalid_age
+            end
+        end
+    else
+        process_age (age)
+    end
+end</code></pre>
+    
+    <h2 id="complete-example">Complete Example: Robust API Client</h2>
+    
+    <pre><code class="eiffel">class
+    ROBUST_API_CLIENT
+
+create
+    make
+
+feature {NONE} -- Initialization
+
+    make
+            -- Process API response with comprehensive error handling
+        local
+            api_response: STRING
+        do
+            api_response := fetch_from_api
+            
+            if process_response (api_response) then
+                print ("API call successful%N")
+            else
+                print ("API call failed%N")
+            end
+        end
+
+feature -- Processing
+
+    process_response (a_response: STRING): BOOLEAN
+            -- Process API response with full error handling
+        local
+            json: JSON
+            validation_result: TUPLE[valid: BOOLEAN; error: detachable STRING]
+            data: detachable SIMPLE_JSON_OBJECT
+        do
+            create json
+            
+            -- Step 1: Validate JSON syntax
+            validation_result := json.validate (a_response)
+            
+            if not validation_result.valid then
+                if attached validation_result.error as err then
+                    log_error ("API returned invalid JSON: " + err)
+                end
+                Result := False
+            else
+                -- Step 2: Parse JSON
+                data := json.parse (a_response)
+                
+                if data = Void then
+                    log_error ("Failed to parse valid JSON (unexpected)")
+                    Result := False
+                else
+                    -- Step 3: Extract with error handling
+                    Result := extract_and_process (data)
+                end
+            end
+        end
+
+    extract_and_process (a_data: SIMPLE_JSON_OBJECT): BOOLEAN
+            -- Extract data with comprehensive error checking
+        local
+            status: detachable STRING
+            code: INTEGER
+            message: detachable STRING
+        do
+            Result := True
+            
+            -- Check for error response format
+            if a_data.has_key ("error") then
+                code := a_data.integer ("error_code")
+                message := a_data.string ("error_message")
+                
+                if attached message as msg then
+                    log_error ("API error [" + code.out + "]: " + msg)
+                else
+                    log_error ("API error [" + code.out + "]: Unknown error")
+                end
+                
+                Result := False
+            else
+                -- Extract success data
+                status := a_data.string ("status")
+                
+                if attached status as s then
+                    if s.is_equal ("success") then
+                        -- Extract payload
+                        if a_data.has_key ("data") then
+                            if attached a_data.object ("data") as payload then
+                                Result := process_payload (payload)
+                            else
+                                log_error ("Data field is not an object")
+                                Result := False
+                            end
+                        else
+                            log_error ("Missing data field in success response")
+                            Result := False
+                        end
+                    else
+                        log_error ("Unexpected status: " + s)
+                        Result := False
+                    end
+                else
+                    log_error ("Missing status field")
+                    Result := False
+                end
+            end
+        end
+
+    process_payload (a_payload: SIMPLE_JSON_OBJECT): BOOLEAN
+            -- Process the data payload with validation
+        local
+            id: INTEGER
+            name, email: detachable STRING
+        do
+            Result := True
+            
+            -- Extract required fields
+            id := a_payload.integer ("id")
+            name := a_payload.string ("name")
+            email := a_payload.string ("email")
+            
+            -- Validate required fields are present
+            if id = 0 then
+                if not a_payload.has_key ("id") then
+                    log_error ("Missing required field: id")
+                    Result := False
+                end
+            end
+            
+            if name = Void then
+                log_error ("Missing required field: name")
+                Result := False
+            end
+            
+            if email = Void then
+                log_error ("Missing required field: email")
+                Result := False
+            end
+            
+            -- If all required fields present, process
+            if Result then
+                if attached name as n and attached email as e then
+                    save_user_data (id, n, e)
+                end
+            end
+        end
+
+feature {NONE} -- Implementation
+
+    fetch_from_api: STRING
+            -- Simulate API call
+        do
+            Result := "{%"status%": %"success%", %"data%": {%"id%": 123, %"name%": %"Alice%", %"email%": %"alice@example.com%"}}"
+        end
+
+    save_user_data (a_id: INTEGER; a_name, a_email: STRING)
+            -- Save extracted data
+        do
+            print ("Saved: ID=" + a_id.out + ", Name=" + a_name + ", Email=" + a_email + "%N")
+        end
+
+    log_error (a_message: STRING)
+            -- Log error message
+        do
+            print ("[ERROR] " + a_message + "%N")
+        end
+
+end</code></pre>
+    
+    <h2 id="patterns">Error Handling Patterns</h2>
+    
+    <h3>Pattern 1: Parse-Check-Extract</h3>
+    <pre><code class="eiffel">process_safe (json_text: STRING)
+    local
+        json: JSON
+        obj: detachable SIMPLE_JSON_OBJECT
+    do
+        create json
+        
+        -- Parse
+        obj := json.parse (json_text)
+        
+        -- Check
+        if obj = Void then
+            handle_parse_failure (json.last_error)
+        else
+            -- Extract
+            extract_and_use (obj)
+        end
+    end</code></pre>
+    
+    <h3>Pattern 2: Validate-Then-Parse</h3>
+    <pre><code class="eiffel">process_validated (json_text: STRING)
+    local
+        json: JSON
+    do
+        create json
+        
+        -- Validate first
+        if json.is_valid (json_text) then
+            -- Safe to parse
+            obj := json.parse (json_text)
+            extract_and_use (obj)
+        else
+            handle_invalid_json
+        end
+    end</code></pre>
+    
+    <h3>Pattern 3: Optional Field with Default</h3>
+    <pre><code class="eiffel">get_with_default (obj: SIMPLE_JSON_OBJECT; key: STRING; default: STRING): STRING
+        -- Get string or return default
+    do
+        if attached obj.string (key) as value then
+            Result := value
+        else
+            Result := default
+        end
+    end
+
+-- Usage
+timeout := get_integer_with_default (config, "timeout", 30)
+host := get_with_default (config, "host", "localhost")</code></pre>
+    
+    <h3>Pattern 4: Distinguish Missing from Zero</h3>
+    <pre><code class="eiffel">get_optional_integer (obj: SIMPLE_JSON_OBJECT; key: STRING): detachable INTEGER_REF
+        -- Return Void if missing, INTEGER_REF if present
+    do
+        if obj.has_key (key) then
+            create Result
+            Result.set_item (obj.integer (key))
+        else
+            Result := Void  -- Key doesn't exist
+        end
+    end
+
+-- Usage
+if attached get_optional_integer (obj, "count") as count then
+    -- Count was explicitly provided (might be 0)
+    process_count (count.item)
+else
+    -- Count was not provided
+    use_default_count
+end</code></pre>
+    
+    <h2 id="error-categories">Error Categories and Responses</h2>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Error Type</th>
+                <th>Detection</th>
+                <th>Response</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Invalid JSON syntax</td>
+                <td><code>parse</code> returns Void</td>
+                <td>Check <code>last_error</code>, log, notify user</td>
+            </tr>
+            <tr>
+                <td>Missing key</td>
+                <td>String returns Void, numbers return 0</td>
+                <td>Use <code>has_key</code> to distinguish, provide default</td>
+            </tr>
+            <tr>
+                <td>Wrong type</td>
+                <td>Returns default value</td>
+                <td>Validate structure beforehand</td>
+            </tr>
+            <tr>
+                <td>Empty JSON</td>
+                <td><code>is_empty</code> returns True</td>
+                <td>Handle as special case</td>
+            </tr>
+            <tr>
+                <td>Null value in JSON</td>
+                <td>Returns default (library treats null as missing)</td>
+                <td>Document that nulls are treated as absent</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <h2 id="logging">Error Logging Best Practices</h2>
+    
+    <pre><code class="eiffel">log_json_error (context: STRING; json_text: STRING; error: detachable STRING)
+        -- Comprehensive error logging
+    do
+        log ("[JSON ERROR] Context: " + context)
+        
+        if attached error as err then
+            log ("  Error: " + err)
+        end
+        
+        -- Log first 200 chars of input for debugging
+        if json_text.count > 200 then
+            log ("  Input: " + json_text.substring (1, 200) + "...")
+        else
+            log ("  Input: " + json_text)
+        end
+        
+        log ("  Timestamp: " + current_timestamp)
+    end</code></pre>
+    
+    <h2 id="recovery">Error Recovery Strategies</h2>
+    
+    <h3>Strategy 1: Graceful Degradation</h3>
+    <pre><code class="eiffel">-- Continue with defaults when fields are missing
+name := if attached obj.string ("name") as n then n else "Unknown" end
+age := obj.integer ("age")  -- 0 if missing
+active := obj.boolean ("active")  -- False if missing</code></pre>
+    
+    <h3>Strategy 2: Retry with Fallback</h3>
+    <pre><code class="eiffel">load_config: SIMPLE_JSON_OBJECT
+        -- Try multiple sources
+    local
+        json: JSON
+    do
+        create json
+        
+        -- Try primary config
+        Result := json.parse (primary_config)
+        
+        if Result = Void then
+            -- Try fallback
+            Result := json.parse (fallback_config)
+            
+            if Result = Void then
+                -- Use hardcoded defaults
+                Result := json.object
+                Result.put_string ("host", "localhost")
+                Result.put_integer ("port", 8080)
+            end
+        end
+    end</code></pre>
+    
+    <h3>Strategy 3: Partial Success</h3>
+    <pre><code class="eiffel">-- Process what you can, skip what you can't
+process_user_list (users_array: SIMPLE_JSON_ARRAY): INTEGER
+        -- Returns count of successfully processed users
+    local
+        processed: INTEGER
+    do
+        across 1 |..| users_array.count as i loop
+            if attached users_array.object_at (i.item) as user then
+                if process_single_user (user) then
+                    processed := processed + 1
+                else
+                    log_warning ("Skipped user at index " + i.item.out)
+                end
+            end
+        end
+        
+        Result := processed
+        print ("Processed " + processed.out + " out of " + users_array.count.out + " users%N")
+    end</code></pre>
+    
+    <div class="warning">
+        <strong>⚠️ Production Tip:</strong> Always log JSON errors in production with enough context to diagnose issues, but don't expose raw JSON to end users (might contain sensitive data).
+    </div>
+    
+    <h2 id="testing">Testing Error Handling</h2>
+    <p>Write tests for error scenarios:</p>
+    
+    <pre><code class="eiffel">test_handles_invalid_json
+    local
+        json: JSON
+        obj: detachable SIMPLE_JSON_OBJECT
+    do
+        create json
+        
+        -- Test with invalid JSON
+        obj := json.parse ("{invalid json}")
+        assert ("parse_returns_void", obj = Void)
+        assert ("has_error_message", json.last_error /= Void)
+    end
+
+test_handles_missing_keys
+    local
+        json: JSON
+        name: detachable STRING
+    do
+        create json
+        
+        -- Key doesn't exist
+        name := json.string ("{}", "name")
+        assert ("missing_key_returns_void", name = Void)
+    end</code></pre>
+    
+    <h2 id="related">Related Use Cases</h2>
+    <ul>
+        <li><a href="validation.html">Use Case 6: Validation</a> - Prevent errors with validation</li>
+        <li><a href="quick-extraction.html">Use Case 1: Quick Value Extraction</a> - Handle returned values</li>
+        <li><a href="query-interface.html">Use Case 3: Query Interface</a> - Error handling with queries</li>
+    </ul>
+    
+    <div class="back-link">
+        <a href="index.html">← Back to Use Cases</a>
+    </div>
+</body>
+</html>

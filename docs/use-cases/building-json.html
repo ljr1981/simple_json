@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIMPLE_JSON - Use Case: Building JSON</title>
+    <style>
+        body {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        
+        h2 {
+            color: #34495e;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        
+        h3 {
+            color: #34495e;
+            margin-top: 20px;
+        }
+        
+        pre {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+        }
+        
+        code {
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+        }
+        
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .tip {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 12px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .warning {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 12px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        nav {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 30px;
+        }
+        
+        nav a {
+            color: #3498db;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+        
+        nav a:hover {
+            text-decoration: underline;
+        }
+        
+        .back-link {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="../index.html">Home</a>
+        <a href="../quick-start.html">Quick Start</a>
+        <a href="index.html">Use Cases</a>
+    </nav>
+
+    <h1 id="use-case-building">Use Case 4: Building JSON Programmatically</h1>
+    
+    <h2 id="overview">Overview</h2>
+    <p>This use case demonstrates how to construct JSON objects from scratch using two approaches: the fluent builder pattern for simple cases, and the object API for complex structures.</p>
+    
+    <p><strong>When to use this:</strong></p>
+    <ul>
+        <li>You need to create JSON for API requests</li>
+        <li>Generating configuration files or data exports</li>
+        <li>Building responses for web services</li>
+        <li>Creating test data programmatically</li>
+    </ul>
+    
+    <h2 id="the-problem">The Problem</h2>
+    <p>You need to create a JSON string programmatically based on runtime data, user input, or application state. Manually constructing JSON strings is error-prone and hard to maintain:</p>
+    
+    <pre><code class="eiffel">-- DON'T DO THIS! Error-prone and ugly
+json_string := "{%"name%": %"" + name + "%", %"age%": " + age.out + ", %"email%": %"" + email + "%"}"</code></pre>
+    
+    <p>This approach has problems:</p>
+    <ul>
+        <li>Easy to forget quotes or commas</li>
+        <li>No validation of structure</li>
+        <li>Hard to read and maintain</li>
+        <li>Doesn't handle special characters in strings</li>
+    </ul>
+    
+    <h2 id="solution-builder">Solution 1: Fluent Builder (Simple Cases)</h2>
+    <p>For simple, flat JSON structures, use the builder pattern:</p>
+    
+    <pre><code class="eiffel">local
+    json: JSON
+    json_string: STRING
+do
+    create json
+    
+    -- Build JSON using fluent interface
+    json_string := json.build
+        .put_string ("name", "Alice Johnson")
+        .put_integer ("age", 30)
+        .put_string ("email", "alice@example.com")
+        .put_boolean ("verified", True)
+        .put_real ("score", 95.5)
+        .to_string
+    
+    -- Result: {"name":"Alice Johnson","age":30,"email":"alice@example.com","verified":true,"score":95.5}
+    
+    print (json_string)
+end</code></pre>
+    
+    <h3>Builder Pattern Advantages</h3>
+    <ul>
+        <li>✅ Chainable method calls (fluent interface)</li>
+        <li>✅ Clean, readable code</li>
+        <li>✅ Automatic quoting and escaping</li>
+        <li>✅ Type-safe value insertion</li>
+    </ul>
+    
+    <div class="tip">
+        <strong>💡 Tip:</strong> The builder pattern is perfect for API requests where you have a flat structure with known fields.
+    </div>
+    
+    <h2 id="solution-object">Solution 2: Object API (Complex Cases)</h2>
+    <p>For conditional fields, nested structures, or dynamic content, use the object API:</p>
+    
+    <pre><code class="eiffel">local
+    json: JSON
+    user: SIMPLE_JSON_OBJECT
+    json_string: STRING
+do
+    create json
+    
+    -- Create empty object
+    user := json.object
+    
+    -- Add fields programmatically
+    user.put_string ("name", "Bob Smith")
+    user.put_integer ("age", 25)
+    user.put_boolean ("active", True)
+    
+    -- Conditional fields
+    if include_email then
+        user.put_string ("email", "bob@example.com")
+    end
+    
+    if include_score then
+        user.put_real ("score", 88.5)
+    end
+    
+    -- Convert to JSON string
+    json_string := user.to_json_string
+    
+    print (json_string)
+end</code></pre>
+    
+    <h2 id="complete-example-api">Complete Example: API Request Builder</h2>
+    
+    <pre><code class="eiffel">class
+    API_REQUEST_BUILDER
+
+create
+    make
+
+feature {NONE} -- Initialization
+
+    make
+            -- Build API request
+        local
+            json_request: STRING
+        do
+            json_request := build_user_creation_request ("Alice Johnson", "alice@example.com", 30)
+            
+            print ("API Request:%N")
+            print (json_request)
+            print ("%N")
+            
+            -- In real code, send this to HTTP client
+            -- send_post_request ("/api/users", json_request)
+        end
+
+feature -- Building
+
+    build_user_creation_request (a_name, a_email: STRING; a_age: INTEGER): STRING
+            -- Build JSON request for user creation
+        local
+            json: JSON
+        do
+            create json
+            
+            Result := json.build
+                .put_string ("name", a_name)
+                .put_string ("email", a_email)
+                .put_integer ("age", a_age)
+                .put_string ("role", "user")
+                .put_boolean ("active", True)
+                .put_string ("created_at", current_timestamp)
+                .to_string
+        end
+
+    build_update_request (a_user_id: INTEGER; a_fields: HASH_TABLE[STRING, STRING]): STRING
+            -- Build dynamic update request based on changed fields
+        local
+            json: JSON
+            obj: SIMPLE_JSON_OBJECT
+        do
+            create json
+            obj := json.object
+            
+            -- Always include user ID
+            obj.put_integer ("user_id", a_user_id)
+            
+            -- Add only changed fields
+            across a_fields as field loop
+                obj.put_string (field.key, field.item)
+            end
+            
+            -- Add metadata
+            obj.put_string ("updated_at", current_timestamp)
+            obj.put_string ("updated_by", current_user)
+            
+            Result := obj.to_json_string
+        end
+
+    build_search_query (a_terms: ARRAY[STRING]; a_filters: HASH_TABLE[STRING, STRING]): STRING
+            -- Build complex search query
+        local
+            json: JSON
+            obj: SIMPLE_JSON_OBJECT
+        do
+            create json
+            obj := json.object
+            
+            -- Add search terms
+            if not a_terms.is_empty then
+                obj.put_string ("query", concatenate_terms (a_terms))
+            end
+            
+            -- Add filters
+            across a_filters as filter loop
+                obj.put_string (filter.key, filter.item)
+            end
+            
+            -- Add pagination
+            obj.put_integer ("page", 1)
+            obj.put_integer ("per_page", 20)
+            
+            Result := obj.to_json_string
+        end
+
+feature {NONE} -- Implementation
+
+    current_timestamp: STRING
+            -- Get current timestamp (simplified)
+        do
+            Result := "2025-11-11T12:00:00Z"
+        end
+
+    current_user: STRING
+            -- Get current user (simplified)
+        do
+            Result := "system"
+        end
+
+    concatenate_terms (terms: ARRAY[STRING]): STRING
+            -- Join search terms with spaces
+        do
+            create Result.make_empty
+            across terms as term loop
+                if not Result.is_empty then
+                    Result.append (" ")
+                end
+                Result.append (term.item)
+            end
+        end
+
+end</code></pre>
+    
+    <h2 id="updating-existing">Updating Existing JSON</h2>
+    <p>The object API allows you to modify existing JSON:</p>
+    
+    <pre><code class="eiffel">local
+    json: JSON
+    obj: detachable SIMPLE_JSON_OBJECT
+    updated_json: STRING
+do
+    create json
+    
+    -- Parse existing JSON
+    obj := json.parse (existing_json_string)
+    
+    if attached obj as

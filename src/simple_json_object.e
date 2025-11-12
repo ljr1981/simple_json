@@ -410,6 +410,54 @@ feature {NONE} -- Implementation
 			result_exists: attached Result
 		end
 
+feature -- Modification
+
+	put_value (a_key: STRING; a_value: SIMPLE_JSON_VALUE)
+			-- Set value for key (works with any SIMPLE_JSON_VALUE type)
+		require
+			not_empty_key: not a_key.is_empty
+			valid_value: attached a_value
+		local
+			ejson_value: JSON_VALUE
+		do
+			ejson_value := unwrap_value (a_value)
+			if has_key (a_key) then
+				json_object.replace (ejson_value, a_key)
+			else
+				json_object.put (ejson_value, a_key)
+			end
+		ensure
+			key_exists: has_key (a_key)
+		end
+
+feature {NONE} -- Implementation
+
+	unwrap_value (a_value: SIMPLE_JSON_VALUE): JSON_VALUE
+			-- Convert SIMPLE_JSON_VALUE to underlying JSON_VALUE
+		require
+			valid_value: attached a_value
+		do
+			if attached {SIMPLE_JSON_OBJECT} a_value as al_obj then
+				Result := al_obj.internal_json_object
+			elseif attached {SIMPLE_JSON_ARRAY} a_value as al_arr then
+				Result := al_arr.internal_json_array
+			elseif attached {SIMPLE_JSON_STRING} a_value as al_str then
+				create {JSON_STRING} Result.make_from_string (al_str.value)
+			elseif attached {SIMPLE_JSON_INTEGER} a_value as al_int then
+				create {JSON_NUMBER} Result.make_integer (al_int.value)
+			elseif attached {SIMPLE_JSON_REAL} a_value as al_real then
+				create {JSON_NUMBER} Result.make_real (al_real.value)
+			elseif attached {SIMPLE_JSON_BOOLEAN} a_value as al_bool then
+				create {JSON_BOOLEAN} Result.make (al_bool.value)
+			elseif attached {SIMPLE_JSON_NULL} a_value then
+				create {JSON_NULL} Result
+			else
+				create {JSON_NULL} Result  -- Fallback
+			end
+		ensure
+			result_exists: attached Result
+		end
+
 feature {SIMPLE_JSON_OBJECT, SIMPLE_JSON_ARRAY, JSON_BUILDER} -- Implementation Access
 
 	internal_json_object: JSON_OBJECT

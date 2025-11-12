@@ -1,8 +1,8 @@
 note
-	description: "Simple JSON library - high-level wrapper for eJSON"
+	description: "Simple JSON library with position-tracked error messages"
 	author: "Larry Rix"
 	date: "November 11, 2025"
-	revision: "1"
+	revision: "2"
 
 class
 	SIMPLE_JSON
@@ -14,23 +14,17 @@ feature -- Parsing
 		require
 			not_empty: not a_json_string.is_empty
 		local
-			l_parser: JSON_PARSER
+			l_parser: SIMPLE_JSON_PARSER
 		do
-			create l_parser.make_with_string (a_json_string)
-			l_parser.parse_content
-
-			if l_parser.is_parsed and then l_parser.is_valid then
-				if attached {JSON_OBJECT} l_parser.parsed_json_value as l_json_obj then
-					create Result.make_from_json (l_json_obj)
-					last_parse_successful := True
-					last_error_message := Void
-				else
-					last_parse_successful := False
-					last_error_message := "JSON root is not an object"
-				end
+			create l_parser.make (a_json_string)
+			Result := l_parser.parse
+			
+			if Result /= Void then
+				last_parse_successful := True
+				last_error_message := Void
 			else
 				last_parse_successful := False
-				last_error_message := "Invalid JSON format"
+				last_error_message := l_parser.last_error
 			end
 		ensure
 			success_implies_result: last_parse_successful implies Result /= Void
@@ -53,11 +47,10 @@ feature -- Validation
 		require
 			not_empty: not a_json_string.is_empty
 		local
-			l_parser: JSON_PARSER
+			l_parser: SIMPLE_JSON_PARSER
 		do
-			create l_parser.make_with_string (a_json_string)
-			l_parser.parse_content
-			Result := l_parser.is_parsed and then l_parser.is_valid
+			create l_parser.make (a_json_string)
+			Result := l_parser.parse /= Void
 		end
 
 end

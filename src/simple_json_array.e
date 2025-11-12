@@ -371,6 +371,49 @@ feature -- Output
 			end
 		end
 
+feature -- Modification
+
+	add_value (a_value: SIMPLE_JSON_VALUE)
+			-- Add value to end of array (works with any SIMPLE_JSON_VALUE type)
+		require
+			valid_value: attached a_value
+		local
+			ejson_value: JSON_VALUE
+		do
+			ejson_value := unwrap_value (a_value)
+			json_array.add (ejson_value)
+		ensure
+			count_increased: count = old count + 1
+		end
+
+feature {NONE} -- Implementation
+
+	unwrap_value (a_value: SIMPLE_JSON_VALUE): JSON_VALUE
+			-- Convert SIMPLE_JSON_VALUE to underlying JSON_VALUE
+		require
+			valid_value: attached a_value
+		do
+			if attached {SIMPLE_JSON_OBJECT} a_value as obj then
+				Result := obj.internal_json_object
+			elseif attached {SIMPLE_JSON_ARRAY} a_value as arr then
+				Result := arr.internal_json_array
+			elseif attached {SIMPLE_JSON_STRING} a_value as str then
+				create {JSON_STRING} Result.make_from_string (str.value)
+			elseif attached {SIMPLE_JSON_INTEGER} a_value as int then
+				create {JSON_NUMBER} Result.make_integer (int.value)
+			elseif attached {SIMPLE_JSON_REAL} a_value as real then
+				create {JSON_NUMBER} Result.make_real (real.value)
+			elseif attached {SIMPLE_JSON_BOOLEAN} a_value as bool then
+				create {JSON_BOOLEAN} Result.make (bool.value)
+			elseif attached {SIMPLE_JSON_NULL} a_value then
+				create {JSON_NULL} Result
+			else
+				create {JSON_NULL} Result  -- Fallback
+			end
+		ensure
+			result_exists: attached Result
+		end
+
 feature {NONE} -- Implementation
 
 	wrap_json_value (a_json_value: JSON_VALUE): SIMPLE_JSON_VALUE

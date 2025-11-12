@@ -16,18 +16,10 @@ feature -- Basic Type Checking Examples
 		do
 			create str.make ("Hello")
 			create int.make (42)
-			
-			if str.is_string then
-				print ("Value is a string: " + str.value + "%N")
-			end
-			
-			if int.is_integer then
-				print ("Value is an integer: " + int.value.out + "%N")
-			end
-			
-			if int.is_number then
-				print ("Integer is also a number%N")
-			end
+
+			assert ("value_is_string", str.is_string)
+			assert ("value_is_integer", int.is_integer)
+			assert ("value_is_number", int.is_number)
 		end
 
 	example_distinguishing_numeric_types
@@ -38,15 +30,15 @@ feature -- Basic Type Checking Examples
 		do
 			create int.make (100)
 			create real.make (99.5)
-			
-			-- Both are numbers
+
+				-- Both are numbers
 			check int.is_number and real.is_number end
-			
-			-- But we can distinguish them
+
+				-- But we can distinguish them
 			if int.is_integer then
 				print ("Processing integer: " + int.value.out + "%N")
 			end
-			
+
 			if real.is_real then
 				print ("Processing real with decimals: " + real.value.out + "%N")
 			end
@@ -62,8 +54,8 @@ feature -- Defensive Programming Examples
 			create obj.make_empty
 			obj.put_string ("name", "Alice")
 			obj.put_integer ("age", 30)
-			
-			-- Check type before extraction
+
+				-- Check type before extraction
 			if obj.is_object then
 				print ("Successfully identified as object%N")
 				print ("Name: " + obj.string ("name") + "%N")
@@ -80,11 +72,11 @@ feature -- Defensive Programming Examples
 			obj: SIMPLE_JSON_OBJECT
 			str: SIMPLE_JSON_STRING
 		do
-			-- Suppose we have a value of unknown type
+				-- Suppose we have a value of unknown type
 			create obj.make_empty
 			value := obj
-			
-			-- Check what it is and handle accordingly
+
+				-- Check what it is and handle accordingly
 			if value.is_object then
 				print ("Value is an object%N")
 			elseif value.is_array then
@@ -111,13 +103,13 @@ feature -- Error Handling Examples
 		do
 			create obj.make_empty
 			obj.put_string ("config_file", "settings.json")
-			
-			-- Validate that we got an object
+
+				-- Validate that we got an object
 			if not obj.is_object then
 				print ("ERROR: Expected JSON object for configuration%N")
-				-- Handle error appropriately
+					-- Handle error appropriately
 			else
-				-- Safe to process as object
+					-- Safe to process as object
 				print ("Configuration loaded: " + obj.string ("config_file") + "%N")
 			end
 		end
@@ -130,10 +122,10 @@ feature -- Error Handling Examples
 		do
 			create arr.make_empty
 			value := arr
-			
-			-- Try to process as object, provide clear error if wrong type
+
+				-- Try to process as object, provide clear error if wrong type
 			if value.is_object then
-				-- Process as object
+					-- Process as object
 				print ("Processing object%N")
 			else
 				if value.is_array then
@@ -155,15 +147,15 @@ feature -- Complex Type Checking Examples
 			nested: detachable SIMPLE_JSON_OBJECT
 		do
 			create obj.make_empty
-			
-			-- Build nested structure
+
+				-- Build nested structure
 			create nested.make_empty
 			nested.put_string ("city", "NYC")
 			nested.put_string ("state", "NY")
-			
-			-- In real code, we'd add nested to obj
-			-- For now, just demonstrate validation
-			
+
+				-- In real code, we'd add nested to obj
+				-- For now, just demonstrate validation
+
 			if obj.is_object then
 				print ("Root is object: OK%N")
 				if attached nested as n then
@@ -182,13 +174,13 @@ feature -- Complex Type Checking Examples
 			arr: SIMPLE_JSON_ARRAY
 		do
 			create arr.make_empty
-			
-			-- Validate it's an array
+
+				-- Validate it's an array
 			if not arr.is_array then
 				print ("ERROR: Expected array%N")
 			else
 				print ("Array validation: OK%N")
-				-- Now we can safely iterate and process elements
+					-- Now we can safely iterate and process elements
 			end
 		end
 
@@ -204,7 +196,7 @@ feature -- Polymorphic Processing Examples
 			values [1] := create {SIMPLE_JSON_STRING}.make ("Hello")
 			values [2] := create {SIMPLE_JSON_INTEGER}.make (42)
 			values [3] := create {SIMPLE_JSON_BOOLEAN}.make (True)
-			
+
 			from
 				i := 1
 			until
@@ -244,8 +236,8 @@ feature -- Pattern Matching Examples
 			result_string: STRING
 		do
 			value := create {SIMPLE_JSON_STRING}.make ("test")
-			
-			-- Pattern-matching style handling
+
+				-- Pattern-matching style handling
 			if value.is_string then
 				result_string := "Matched: string"
 			elseif value.is_number then
@@ -267,7 +259,7 @@ feature -- Pattern Matching Examples
 			else
 				result_string := "Matched: unknown type"
 			end
-			
+
 			print (result_string + "%N")
 		end
 

@@ -1,8 +1,8 @@
 note
-	description: "Wrapper for JSON arrays - provides simple access to array elements"
+	description: "Wrapper for JSON arrays - provides simple access to array elements with enhanced operations"
 	author: "Larry Rix"
-	date: "November 11, 2025"
-	revision: "2"
+	date: "November 12, 2025"
+	revision: "4"
 
 class
 	SIMPLE_JSON_ARRAY
@@ -140,6 +140,176 @@ feature -- Access - Nested Structures
 			end
 		end
 
+feature -- Modification (Append/Prepend)
+
+	append_string (a_value: STRING)
+			-- Append string value to end of array
+		do
+			json_array.add (create {JSON_STRING}.make_from_string (a_value))
+		ensure
+			count_increased: count = old count + 1
+		end
+
+	append_integer (a_value: INTEGER)
+			-- Append integer value to end of array
+		do
+			json_array.add (create {JSON_NUMBER}.make_integer (a_value))
+		ensure
+			count_increased: count = old count + 1
+		end
+
+	append_real (a_value: REAL_64)
+			-- Append real value to end of array
+		do
+			json_array.add (create {JSON_NUMBER}.make_real (a_value))
+		ensure
+			count_increased: count = old count + 1
+		end
+
+	append_boolean (a_value: BOOLEAN)
+			-- Append boolean value to end of array
+		do
+			json_array.add (create {JSON_BOOLEAN}.make (a_value))
+		ensure
+			count_increased: count = old count + 1
+		end
+
+	append_object (a_value: SIMPLE_JSON_OBJECT)
+			-- Append object to end of array
+		require
+			valid_object: attached a_value
+		do
+			json_array.add (a_value.internal_json_object)
+		ensure
+			count_increased: count = old count + 1
+		end
+
+	append_array (a_value: SIMPLE_JSON_ARRAY)
+			-- Append array to end of array
+		require
+			valid_array: attached a_value
+		do
+			json_array.add (a_value.internal_json_array)
+		ensure
+			count_increased: count = old count + 1
+		end
+
+feature -- Modification (Insert/Remove)
+
+	insert_string_at (a_index: INTEGER; a_value: STRING)
+			-- Insert string value at index (1-based)
+			-- All elements at and after a_index will be shifted right
+		require
+			valid_index: a_index >= 1 and a_index <= count + 1
+		local
+			l_new_array: JSON_ARRAY
+			i: INTEGER
+		do
+			-- Create a new array and rebuild with insertion
+			create l_new_array.make_empty
+			from i := 1
+			until i > count + 1
+			loop
+				if i = a_index then
+					l_new_array.add (create {JSON_STRING}.make_from_string (a_value))
+				end
+				if i <= count then
+					l_new_array.add (json_array.i_th (i))
+				end
+				i := i + 1
+			end
+			json_array := l_new_array
+		ensure
+			count_increased: count = old count + 1
+		end
+
+	insert_integer_at (a_index: INTEGER; a_value: INTEGER)
+			-- Insert integer value at index (1-based)
+			-- All elements at and after a_index will be shifted right
+		require
+			valid_index: a_index >= 1 and a_index <= count + 1
+		local
+			l_new_array: JSON_ARRAY
+			i: INTEGER
+		do
+			-- Create a new array and rebuild with insertion
+			create l_new_array.make_empty
+			from i := 1
+			until i > count + 1
+			loop
+				if i = a_index then
+					l_new_array.add (create {JSON_NUMBER}.make_integer (a_value))
+				end
+				if i <= count then
+					l_new_array.add (json_array.i_th (i))
+				end
+				i := i + 1
+			end
+			json_array := l_new_array
+		ensure
+			count_increased: count = old count + 1
+		end
+
+	remove_at (a_index: INTEGER)
+			-- Remove element at index (1-based)
+		require
+			valid_index: valid_index (a_index)
+		local
+			l_new_array: JSON_ARRAY
+			i: INTEGER
+		do
+			-- Create a new array and rebuild without the removed element
+			create l_new_array.make_empty
+			from i := 1
+			until i > count
+			loop
+				if i /= a_index then
+					l_new_array.add (json_array.i_th (i))
+				end
+				i := i + 1
+			end
+			json_array := l_new_array
+		ensure
+			count_decreased: count = old count - 1
+		end
+
+	clear
+			-- Remove all elements from array
+		do
+			create json_array.make_empty
+		ensure
+			is_empty: is_empty
+		end
+
+feature -- Operations
+
+	json_clone: SIMPLE_JSON_ARRAY
+			-- Create an independent copy of this array
+		local
+			l_json_string: STRING
+			l_parser: JSON_PARSER
+		do
+			-- Serialize to JSON string then parse back
+			l_json_string := to_json_string
+			create l_parser.make_with_string (l_json_string)
+			l_parser.parse_content
+			
+			if l_parser.is_parsed and then l_parser.is_valid then
+				if attached {JSON_ARRAY} l_parser.parsed_json_value as l_arr then
+					create Result.make_from_json (l_arr)
+				else
+					-- Fallback to empty array
+					create Result.make_empty
+				end
+			else
+				-- Fallback to empty array
+				create Result.make_empty
+			end
+		ensure
+			result_exists: attached Result
+			independent: Result /= Current
+		end
+
 feature -- Type checking
 
 	is_string: BOOLEAN = False
@@ -157,6 +327,14 @@ feature -- Conversion
 			-- Convert to JSON string representation
 		do
 			Result := json_array.representation
+		end
+
+feature {SIMPLE_JSON_OBJECT, SIMPLE_JSON_ARRAY, JSON_BUILDER} -- Implementation Access
+
+	internal_json_array: JSON_ARRAY
+			-- Direct access to underlying eJSON array for internal use
+		do
+			Result := json_array
 		end
 
 feature {NONE} -- Implementation

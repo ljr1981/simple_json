@@ -1,8 +1,8 @@
 note
-	description: "Wrapper for JSON objects - provides simple access to JSON data"
+	description: "Wrapper for JSON objects - provides simple access to JSON data with enhanced operations"
 	author: "Larry Rix"
-	date: "November 11, 2025"
-	revision: "2"
+	date: "November 12, 2025"
+	revision: "4"
 
 class
 	SIMPLE_JSON_OBJECT
@@ -142,7 +142,7 @@ feature -- Access
 			end
 		end
 
-feature -- Modification
+feature -- Modification (Basic)
 
 	put_string (a_key: STRING; a_value: STRING)
 			-- Set string value for key (adds new or updates existing)
@@ -160,6 +160,7 @@ feature -- Modification
 		end
 
 	put_integer (a_key: STRING; a_value: INTEGER)
+			-- Set integer value for key
 		require
 			not_empty_key: not a_key.is_empty
 		do
@@ -173,6 +174,7 @@ feature -- Modification
 		end
 
 	put_boolean (a_key: STRING; a_value: BOOLEAN)
+			-- Set boolean value for key
 		require
 			not_empty_key: not a_key.is_empty
 		do
@@ -186,6 +188,7 @@ feature -- Modification
 		end
 
 	put_real (a_key: STRING; a_value: REAL_64)
+			-- Set real value for key
 		require
 			not_empty_key: not a_key.is_empty
 		do
@@ -196,6 +199,117 @@ feature -- Modification
 			end
 		ensure
 			key_exists: has_key (a_key)
+		end
+
+	put_object (a_key: STRING; a_value: SIMPLE_JSON_OBJECT)
+			-- Set nested object for key
+		require
+			not_empty_key: not a_key.is_empty
+			valid_object: attached a_value
+		do
+			if has_key (a_key) then
+				json_object.replace (a_value.internal_json_object, a_key)
+			else
+				json_object.put (a_value.internal_json_object, a_key)
+			end
+		ensure
+			key_exists: has_key (a_key)
+		end
+
+	put_array (a_key: STRING; a_value: SIMPLE_JSON_ARRAY)
+			-- Set array for key
+		require
+			not_empty_key: not a_key.is_empty
+			valid_array: attached a_value
+		do
+			if has_key (a_key) then
+				json_object.replace (a_value.internal_json_array, a_key)
+			else
+				json_object.put (a_value.internal_json_array, a_key)
+			end
+		ensure
+			key_exists: has_key (a_key)
+		end
+
+feature -- Modification (Advanced)
+
+	merge (a_other: SIMPLE_JSON_OBJECT)
+			-- Merge another object into this one
+			-- Existing keys will be overwritten by values from a_other
+		require
+			valid_object: attached a_other
+		local
+			l_keys: ARRAY [JSON_STRING]
+			l_other_obj: JSON_OBJECT
+			l_key: JSON_STRING
+			l_key_string: STRING
+		do
+			l_other_obj := a_other.internal_json_object
+			l_keys := l_other_obj.current_keys
+			across l_keys as ic loop
+				l_key := ic.item
+				l_key_string := l_key.item
+				if attached l_other_obj.item (l_key) as l_value then
+					if has_key (l_key_string) then
+						json_object.replace (l_value, l_key)
+					else
+						json_object.put (l_value, l_key)
+					end
+				end
+			end
+		end
+
+	remove_key (a_key: STRING)
+			-- Remove key from object
+		require
+			not_empty_key: not a_key.is_empty
+		do
+			json_object.remove (a_key)
+		ensure
+			key_removed: not has_key (a_key)
+		end
+
+	rename_key (a_old_key: STRING; a_new_key: STRING)
+			-- Rename a key
+		require
+			not_empty_old_key: not a_old_key.is_empty
+			not_empty_new_key: not a_new_key.is_empty
+			has_old_key: has_key (a_old_key)
+		do
+			if attached json_object.item (a_old_key) as l_value then
+				json_object.put (l_value, a_new_key)
+				json_object.remove (a_old_key)
+			end
+		ensure
+			old_key_removed: not has_key (a_old_key)
+			new_key_exists: has_key (a_new_key)
+		end
+
+	json_clone: SIMPLE_JSON_OBJECT
+			-- Create an independent copy of this object
+		local
+			l_json_string: STRING
+			l_parser: JSON_PARSER
+		do
+			-- Serialize to JSON string then parse back
+			l_json_string := to_json_string
+			create l_parser.make_with_string (l_json_string)
+			l_parser.parse_content
+			
+			if l_parser.is_parsed and then l_parser.is_valid then
+				if attached {JSON_OBJECT} l_parser.parsed_json_value as l_obj then
+					create Result.make_from_json (l_obj)
+				else
+					-- Fallback to empty object
+					create Result.make_empty
+				end
+			else
+				-- Fallback to empty object
+				create Result.make_empty
+			end
+		ensure
+			result_exists: attached Result
+			independent: Result /= Current
 		end
 
 feature -- Type checking
@@ -215,6 +329,14 @@ feature -- Conversion
 			-- Convert to JSON string representation
 		do
 			Result := json_object.representation
+		end
+
+feature {SIMPLE_JSON_OBJECT, SIMPLE_JSON_ARRAY, JSON_BUILDER} -- Implementation Access
+
+	internal_json_object: JSON_OBJECT
+			-- Direct access to underlying eJSON object for internal use
+		do
+			Result := json_object
 		end
 
 feature {NONE} -- Implementation

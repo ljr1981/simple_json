@@ -42,6 +42,16 @@ feature -- Access
 	last_error: detachable STRING
 			-- Last error message with position
 
+feature -- Last Error
+
+	last_error_line: INTEGER
+
+	last_error_column: INTEGER
+
+	last_error_position: INTEGER
+		-- Error message like:
+		-- "Parse error at line 5, column 23: Expected '}' but found ','"
+
 feature -- Parsing
 
 	parse: detachable SIMPLE_JSON_OBJECT
@@ -55,7 +65,7 @@ feature -- Parsing
 			else
 				set_error ("Expected object, got '" + current_char.out + "'")
 			end
-			
+
 			if has_error then
 				Result := Void
 			end
@@ -131,7 +141,7 @@ feature {NONE} -- Implementation: Parsing
 					at_end or else current_char = '}' or else has_error
 				loop
 					skip_whitespace
-					
+
 					-- Parse key
 					if at_end then
 						set_error ("Unexpected end of input in object")
@@ -139,10 +149,10 @@ feature {NONE} -- Implementation: Parsing
 						set_error ("Expected property name, got '" + current_char.out + "'")
 					else
 						key := parse_string_content
-						
+
 						if not has_error then
 							skip_whitespace
-							
+
 							-- Expect colon
 							if at_end then
 								set_error ("Expected ':' after property name")
@@ -151,13 +161,13 @@ feature {NONE} -- Implementation: Parsing
 							else
 								advance -- skip ':'
 								skip_whitespace
-								
+
 								-- Parse value
 								value := parse_value
 								if not has_error and attached Result as al_result and attached value as al_value then
 									al_result.put_value (key, al_value)
 									skip_whitespace
-									
+
 									-- Check for comma or end
 									if not at_end then
 										if current_char = ',' then
@@ -184,7 +194,7 @@ feature {NONE} -- Implementation: Parsing
 					end
 				end
 			end
-			
+
 			if has_error then
 				Result := Void
 			end
@@ -194,7 +204,7 @@ feature {NONE} -- Implementation: Parsing
 			-- Parse any JSON value
 		do
 			skip_whitespace
-			
+
 			if at_end then
 				set_error ("Unexpected end of input")
 				create {SIMPLE_JSON_NULL} Result.make
@@ -217,7 +227,7 @@ feature {NONE} -- Implementation: Parsing
 					create {SIMPLE_JSON_NULL} Result.make
 				end
 			end
-			
+
 			if has_error then
 				Result := Void
 			end
@@ -245,7 +255,7 @@ feature {NONE} -- Implementation: Parsing
 					if not has_error and attached Result as al_result and attached value as al_value then
 						al_result.add_value (al_value)
 						skip_whitespace
-						
+
 						if not at_end then
 							if current_char = ',' then
 								advance
@@ -268,7 +278,7 @@ feature {NONE} -- Implementation: Parsing
 					end
 				end
 			end
-			
+
 			if has_error then
 				Result := Void
 			end
@@ -416,7 +426,7 @@ feature {NONE} -- Implementation: Parsing
 					end
 				end
 			end
-			
+
 			if has_error then
 				Result := Void
 			end

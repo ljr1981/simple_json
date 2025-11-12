@@ -70,6 +70,26 @@ feature -- Output
             has_result: not Result.is_empty
         end
 
+feature -- Type checking helpers
+
+    is_numeric: BOOLEAN
+            -- Is this a numeric type (integer, real, or decimal)?
+        do
+            Result := is_integer or is_real or is_number
+        end
+
+    is_container: BOOLEAN
+            -- Is this a container type (object or array)?
+        do
+            Result := is_object or is_array
+        end
+
+    is_primitive: BOOLEAN
+            -- Is this a primitive type?
+        do
+            Result := is_string or is_boolean or is_null or is_numeric
+        end
+
 feature {NONE} -- Implementation
 
     indent_string (a_level: INTEGER): STRING

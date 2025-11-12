@@ -1,78 +1,91 @@
 note
-	description: "Wrapper for JSON integer values"
-	author: "Larry Rix"
-	date: "November 12, 2025"
-	revision: "1"
+    description: "Wrapper for JSON integer values"
+    author: "Larry Rix"
+    date: "November 12, 2025"
+    revision: "2"
 
 class
-	SIMPLE_JSON_INTEGER
+    SIMPLE_JSON_INTEGER
 
 inherit
-	SIMPLE_JSON_VALUE
+    SIMPLE_JSON_PRIMITIVE [INTEGER, JSON_NUMBER]
+        redefine
+            make_from_json,
+            json_value
+        end
+
+    SIMPLE_JSON_NUMERIC
+        -- No redefine clause needed - json_number is deferred in parent
+
+    JSON_TYPE_INTEGER
 
 create
-	make,
-	make_from_json
+    make,
+    make_from_json
 
 feature {NONE} -- Initialization
 
-	make (a_value: INTEGER)
-			-- Create from Eiffel integer
-		do
-			create json_number.make_integer (a_value)
-		end
+    make (a_value: INTEGER)
+            -- Create from Eiffel integer
+        do
+            create json_value.make_integer (a_value)
+        end
 
-	make_from_json (a_json_number: JSON_NUMBER)
-			-- Create from eJSON JSON_NUMBER
-		require
-			is_integer: a_json_number.is_integer
-		do
-			json_number := a_json_number
-		ensure
-			set: json_number = a_json_number
-		end
+    make_from_json (a_json_number: JSON_NUMBER)
+            -- Create from eJSON JSON_NUMBER
+        require else
+            is_integer: a_json_number.is_integer
+        do
+            json_value := a_json_number
+        ensure then
+            set: json_value = a_json_number
+        end
 
 feature -- Access
 
-	value: INTEGER
-			-- The integer value
-		do
-			Result := json_number.integer_64_item.to_integer_32
-		end
+    value: INTEGER
+            -- The integer value
+        do
+            Result := json_value.integer_64_item.to_integer_32
+        end
 
-feature -- Type checking
+feature -- Numeric conversions (from SIMPLE_JSON_NUMERIC)
 
-	is_string: BOOLEAN = False
-	is_number: BOOLEAN = True
-	is_integer: BOOLEAN = True
-	is_real: BOOLEAN = False
-	is_boolean: BOOLEAN = False
-	is_null: BOOLEAN = False
-	is_object: BOOLEAN = False
-	is_array: BOOLEAN = False
+    to_integer: INTEGER
+            -- Convert to integer
+        do
+            Result := value
+        end
 
-feature -- Conversion
+    to_real: REAL_64
+            -- Convert to real
+        do
+            Result := value.to_double
+        end
 
-	to_json_string: STRING
-			-- Convert to JSON string representation
-		do
-			Result := json_number.representation
-		end
+    numeric_value: NUMERIC
+            -- Generic numeric value
+        do
+            Result := value
+        end
 
 feature -- Output
 
-	to_pretty_string (a_indent_level: INTEGER): STRING
-			-- <Precursor>
-		do
-			Result := value.out
-		end
+    to_pretty_string (a_indent_level: INTEGER): STRING
+            -- <Precursor>
+        do
+            Result := value.out
+        end
 
 feature {NONE} -- Implementation
 
-	json_number: JSON_NUMBER
-			-- Underlying eJSON number
+    json_number: JSON_NUMBER
+            -- Underlying eJSON number (effecting deferred feature from SIMPLE_JSON_NUMERIC)
+        do
+            Result := json_value
+        end
 
-invariant
-	has_number: attached json_number
+    json_value: JSON_NUMBER
+            -- Underlying eJSON number (from SIMPLE_JSON_PRIMITIVE)
 
 end

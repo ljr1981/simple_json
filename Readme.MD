@@ -17,7 +17,7 @@ Simple JSON provides a clean, intuitive interface for working with JSON data in 
 - **🔎 Path-Based Queries**: Navigate nested JSON structures using intuitive path notation  
 - **🗃️ Enhanced Building**: Construct JSON with fluent builder including conditional fields
 - **✅ Robust Validation**: Comprehensive error handling and validation
-- **🧪 Well-Tested**: Extensive test suite with 100% coverage (107 tests across 11 test classes)
+- **🧪 Well-Tested**: Extensive test suite with 100% coverage (151 tests across 11 test classes)
 - **📚 Full Documentation**: Complete user guide, API docs, and EIS integration
 - **🎯 Type Safety**: Leverages Eiffel's strong typing for safe JSON operations
 - **🔢 Precise Numbers**: Support for integers, floating-point, and arbitrary precision decimals
@@ -26,11 +26,13 @@ Simple JSON provides a clean, intuitive interface for working with JSON data in 
 - **📝 Array Manipulation**: Full CRUD operations (append, insert, remove, clear)
 - **🔀 Object Operations**: Merge, clone, rename keys, and more
 - **💰 Financial Precision**: SIMPLE_JSON_DECIMAL for exact decimal arithmetic
+- **📍 Position Tracking**: Parse errors include line and column numbers for easy debugging
 
 ## What's New
 
 ### Recently Added (November 2025)
 
+- **Position Tracking**: Parse errors now include exact line and column numbers (e.g., "Error at line 15, column 23: Expected ','") for instant debugging
 - **Arbitrary Precision Decimals**: New `SIMPLE_JSON_DECIMAL` class using DECIMAL library for exact decimal representation (no more "3.1400000000000001"!)
 - **Type Introspection**: All JSON value types now support `is_string`, `is_number`, `is_integer`, `is_real`, `is_decimal`, `is_boolean`, `is_null`, `is_object`, `is_array` queries
 - **Builder Enhancements**: Conditional `put_*_if` methods, merge, remove, rename, clear, and clone operations
@@ -74,6 +76,20 @@ do
         name := json.string_value_at ("name")
         age := json.integer_value_at ("age")
         print ("Name: " + name + ", Age: " + age.out)
+    end
+end
+```
+
+### Error Handling with Position Tracking
+```eiffel
+local
+    json: JSON
+do
+    create json.make_from_string ("{%"name%": %"Alice%", invalid}")
+    
+    if not json.is_valid then
+        -- Prints: "Error at line 1, column 23: Expected property name, got 'i'"
+        print (json.error_message)
     end
 end
 ```
@@ -159,7 +175,7 @@ The main facade class providing the primary interface for parsing and querying J
 - Parse JSON strings
 - Query values by path
 - Type-safe value extraction
-- Validation and error reporting
+- Validation and error reporting with line/column positions
 
 ### JSON_BUILDER
 Fluent interface for constructing JSON structures programmatically.
@@ -237,7 +253,7 @@ All documentation is integrated with EiffelStudio's EIS system. Press F1 on any 
 
 The library includes a comprehensive test suite with 100% coverage:
 
-- **107 tests** across 11 test classes
+- **151 tests** across 11 test classes
 - **Path and Integer Tests** (`TEST_JSON_FACADE`)
 - **Type Introspection** (`TEST_JSON_TYPE_INTROSPECTION`)
 - **Builder Enhancements** (`TEST_JSON_BUILDER_ENHANCEMENTS`)
@@ -255,7 +271,7 @@ The library includes a comprehensive test suite with 100% coverage:
 1. Open `simple_json.ecf` in EiffelStudio
 2. Set the testing configuration as the active target
 3. Compile and run tests
-4. All 107 tests should pass ✅
+4. All 151 tests should pass ✅
 
 ## API Reference
 
@@ -355,7 +371,7 @@ Simple JSON follows these key principles:
 1. **Simplicity First**: API designed for ease of use without sacrificing power
 2. **Type Safety**: Leverage Eiffel's type system for compile-time safety
 3. **Precision Options**: Choose between fast floating-point or exact decimal arithmetic
-4. **Error Clarity**: Clear, actionable error messages
+4. **Error Clarity**: Clear, actionable error messages with line and column positions
 5. **Performance**: Efficient parsing and querying
 6. **Testability**: 100% test coverage for reliability
 7. **Design by Contract**: Comprehensive preconditions, postconditions, and invariants
@@ -381,6 +397,7 @@ Contributions are welcome! Here's how you can help:
 ## Roadmap
 
 ### Completed ✅
+- Position tracking for parse errors (line and column numbers)
 - Type introspection methods
 - Builder conditional methods
 - Builder operations (merge, remove, rename, clear, clone)
@@ -391,7 +408,6 @@ Contributions are welcome! Here's how you can help:
 ### Future Enhancements 🚀
 - [ ] JSON Schema validation
 - [ ] Pretty-printing with custom formatting
-- [ ] Position tracking for better error messages
 - [ ] Streaming parser for large files
 - [ ] JSON Pointer (RFC 6901) support
 - [ ] JSON Patch (RFC 6902) support

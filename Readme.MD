@@ -1,6 +1,6 @@
 # Simple JSON
 
-A lightweight, easy-to-use JSON parsing and generation library for Eiffel.
+A lightweight, easy-to-use JSON parsing and generation library for Eiffel with arbitrary precision decimal support.
 
 AI NOTE: Most code was generated interactively using Claude Sonnet 4.5 with minor mods applied by hand. Additional pushes forward with this library will use the same method.
 
@@ -17,20 +17,22 @@ Simple JSON provides a clean, intuitive interface for working with JSON data in 
 - **🔎 Path-Based Queries**: Navigate nested JSON structures using intuitive path notation  
 - **🗃️ Enhanced Building**: Construct JSON with fluent builder including conditional fields
 - **✅ Robust Validation**: Comprehensive error handling and validation
-- **🧪 Well-Tested**: Extensive test suite with 100% coverage (96 tests across 10 test classes)
+- **🧪 Well-Tested**: Extensive test suite with 100% coverage (107 tests across 11 test classes)
 - **📚 Full Documentation**: Complete user guide, API docs, and EIS integration
 - **🎯 Type Safety**: Leverages Eiffel's strong typing for safe JSON operations
-- **🔢 Number Handling**: Proper support for integers, decimals, and scientific notation
-- **🔧 Type Introspection**: Check value types with `is_string`, `is_number`, `is_object`, etc.
+- **🔢 Precise Numbers**: Support for integers, floating-point, and arbitrary precision decimals
+- **🔬 Type Introspection**: Check value types with `is_string`, `is_number`, `is_decimal`, etc.
 - **⚡ Conditional Building**: Add fields conditionally with `put_*_if` methods
 - **📝 Array Manipulation**: Full CRUD operations (append, insert, remove, clear)
 - **🔀 Object Operations**: Merge, clone, rename keys, and more
+- **💰 Financial Precision**: SIMPLE_JSON_DECIMAL for exact decimal arithmetic
 
 ## What's New
 
 ### Recently Added (November 2025)
 
-- **Type Introspection**: All JSON value types now support `is_string`, `is_number`, `is_integer`, `is_real`, `is_boolean`, `is_null`, `is_object`, `is_array` queries
+- **Arbitrary Precision Decimals**: New `SIMPLE_JSON_DECIMAL` class using DECIMAL library for exact decimal representation (no more "3.1400000000000001"!)
+- **Type Introspection**: All JSON value types now support `is_string`, `is_number`, `is_integer`, `is_real`, `is_decimal`, `is_boolean`, `is_null`, `is_object`, `is_array` queries
 - **Builder Enhancements**: Conditional `put_*_if` methods, merge, remove, rename, clear, and clone operations
 - **Array Enhancements**: Full modification support with append, insert, remove, and clear operations
 - **Comprehensive Documentation**: New markdown docs with EIS integration for F1 help in EiffelStudio
@@ -53,10 +55,13 @@ git clone https://github.com/ljr1981/simple_json.git
 
 3. Set the `SIMPLE_JSON` environment variable to point to your clone location, or use an absolute path.
 
+### Optional: DECIMAL Library
+
+For arbitrary precision decimal support, ensure the DECIMAL library is available in your EiffelStudio installation or project. See [docs/DECIMAL_SUPPORT_GUIDE.md](docs/DECIMAL_SUPPORT_GUIDE.md) for details.
+
 ## Quick Start
 
 ### Parsing JSON
-
 ```eiffel
 local
     json: JSON
@@ -73,8 +78,22 @@ do
 end
 ```
 
-### Building JSON with Enhancements
+### Using Arbitrary Precision Decimals
+```eiffel
+local
+    price: SIMPLE_JSON_DECIMAL
+    json_output: STRING
+do
+    -- Exact precision - no floating-point errors!
+    create price.make_from_string ("19.99")
+    json_output := price.to_json_string  -- "19.99" (exact!)
+    
+    -- Perfect for financial calculations
+    print ("Price: $" + json_output)
+end
+```
 
+### Building JSON with Enhancements
 ```eiffel
 local
     builder: JSON_BUILDER
@@ -97,7 +116,6 @@ end
 ```
 
 ### Working with Arrays
-
 ```eiffel
 local
     arr: SIMPLE_JSON_ARRAY
@@ -114,7 +132,6 @@ end
 ```
 
 ### Type Checking
-
 ```eiffel
 local
     json: JSON
@@ -127,6 +144,8 @@ do
         print ("It's an integer: " + json.integer_value_at ("count").out)
     elseif value.is_string then
         print ("It's a string: " + json.string_value_at ("count"))
+    elseif value.is_decimal then
+        print ("It's a decimal with arbitrary precision")
     end
 end
 ```
@@ -152,6 +171,16 @@ Fluent interface for constructing JSON structures programmatically.
 - Merge, remove, rename operations
 - Generate formatted JSON strings
 - Clone for template reuse
+
+### SIMPLE_JSON_DECIMAL
+Arbitrary precision decimal numbers for financial and scientific applications.
+
+**Key Features:**
+- Exact decimal representation (no floating-point errors)
+- Financial-grade arithmetic
+- IEEE 754R compliant
+- Perfect for money, prices, and precise measurements
+- See [docs/DECIMAL_SUPPORT_GUIDE.md](docs/DECIMAL_SUPPORT_GUIDE.md)
 
 ### SIMPLE_JSON_ARRAY
 Dynamic array with full modification support.
@@ -188,6 +217,7 @@ Comprehensive documentation is available:
 
 - **[Quick Start](docs/quick-start.html)** - Get started quickly
 - **[User Guide](docs/user-guide.html)** - Complete usage documentation
+- **[DECIMAL Support](docs/DECIMAL_SUPPORT_GUIDE.md)** - Arbitrary precision guide
 - **[Use Cases](docs/use-cases/)** - Detailed examples for common scenarios
   - [Building JSON](docs/use-cases/building-json.html)
   - [Error Handling](docs/use-cases/error-handling.html)
@@ -207,11 +237,12 @@ All documentation is integrated with EiffelStudio's EIS system. Press F1 on any 
 
 The library includes a comprehensive test suite with 100% coverage:
 
-- **96 tests** across 10 test classes
+- **107 tests** across 11 test classes
 - **Path and Integer Tests** (`TEST_JSON_FACADE`)
 - **Type Introspection** (`TEST_JSON_TYPE_INTROSPECTION`)
 - **Builder Enhancements** (`TEST_JSON_BUILDER_ENHANCEMENTS`)
 - **Array Enhancements** (`TEST_JSON_ARRAY_ENHANCEMENTS`)
+- **DECIMAL Precision** (`TEST_SIMPLE_JSON_DECIMAL_PRETTY_PRINTING`) ⭐ NEW
 - **Basic Parsing** (`TEST_SIMPLE_JSON`)
 - **Error Conditions** (`TEST_SIMPLE_JSON_ERRORS`)
 - **JSON Generation** (`TEST_SIMPLE_JSON_GENERATION`)
@@ -224,7 +255,7 @@ The library includes a comprehensive test suite with 100% coverage:
 1. Open `simple_json.ecf` in EiffelStudio
 2. Set the testing configuration as the active target
 3. Compile and run tests
-4. All 96 tests should pass ✅
+4. All 107 tests should pass ✅
 
 ## API Reference
 
@@ -262,6 +293,20 @@ The library includes a comprehensive test suite with 100% coverage:
 | `build: SIMPLE_JSON_OBJECT` | Get underlying object |
 | `clone_object: SIMPLE_JSON_OBJECT` | Get independent copy |
 
+### SIMPLE_JSON_DECIMAL Class ⭐ NEW
+
+| Method | Description |
+|--------|-------------|
+| `make_from_string (value: STRING)` | Create from string (recommended) |
+| `make_from_integer (value: INTEGER)` | Create from integer |
+| `make_from_real (value: REAL_64)` | Create from real (use cautiously) |
+| `make_from_decimal (value: DECIMAL)` | Create from existing DECIMAL |
+| `decimal_value: DECIMAL` | Get underlying DECIMAL |
+| `to_json_string: STRING` | Convert to JSON representation |
+| `to_pretty_string (indent: INTEGER): STRING` | Pretty print |
+| `is_decimal: BOOLEAN` | Type check (always True) |
+| `is_number: BOOLEAN` | Type check (always True) |
+
 ### SIMPLE_JSON_ARRAY Class
 
 | Method | Description |
@@ -290,6 +335,7 @@ The library includes a comprehensive test suite with 100% coverage:
 | `is_number: BOOLEAN` | Is this any numeric value? |
 | `is_integer: BOOLEAN` | Is this an integer value? |
 | `is_real: BOOLEAN` | Is this a real/decimal value? |
+| `is_decimal: BOOLEAN` | Is this an arbitrary precision decimal? ⭐ NEW |
 | `is_boolean: BOOLEAN` | Is this a boolean value? |
 | `is_null: BOOLEAN` | Is this a null value? |
 | `is_object: BOOLEAN` | Is this an object? |
@@ -299,7 +345,8 @@ The library includes a comprehensive test suite with 100% coverage:
 
 - **EiffelStudio**: Version 19.05 or later recommended
 - **Platform**: Windows, macOS, Linux
-- **Dependencies**: None (uses only EiffelBase)
+- **Dependencies**: EiffelBase (standard library)
+- **Optional**: DECIMAL library (for SIMPLE_JSON_DECIMAL support)
 
 ## Design Principles
 
@@ -307,10 +354,11 @@ Simple JSON follows these key principles:
 
 1. **Simplicity First**: API designed for ease of use without sacrificing power
 2. **Type Safety**: Leverage Eiffel's type system for compile-time safety
-3. **Error Clarity**: Clear, actionable error messages
-4. **Performance**: Efficient parsing and querying
-5. **Testability**: 100% test coverage for reliability
-6. **Design by Contract**: Comprehensive preconditions, postconditions, and invariants
+3. **Precision Options**: Choose between fast floating-point or exact decimal arithmetic
+4. **Error Clarity**: Clear, actionable error messages
+5. **Performance**: Efficient parsing and querying
+6. **Testability**: 100% test coverage for reliability
+7. **Design by Contract**: Comprehensive preconditions, postconditions, and invariants
 
 ## Contributing
 
@@ -337,6 +385,7 @@ Contributions are welcome! Here's how you can help:
 - Builder conditional methods
 - Builder operations (merge, remove, rename, clear, clone)
 - Array modification operations
+- Arbitrary precision decimal support (SIMPLE_JSON_DECIMAL)
 - Comprehensive documentation with EIS integration
 
 ### Future Enhancements 🚀
@@ -348,6 +397,22 @@ Contributions are welcome! Here's how you can help:
 - [ ] JSON Patch (RFC 6902) support
 - [ ] Performance optimizations
 - [ ] Extended Unicode support
+
+## Number Precision Guide
+
+### When to Use REAL_64
+- Graphics and game coordinates (speed matters)
+- Physics simulations (approximate values OK)
+- Statistical calculations
+- Performance-critical code
+
+### When to Use SIMPLE_JSON_DECIMAL
+- 💰 Financial calculations (invoices, accounting)
+- 📊 Scientific measurements (exact precision required)
+- 👤 User-facing displays ("3.14" not "3.1400000000000001")
+- 🔄 Data interchange (preserve exact decimal values)
+
+See [docs/DECIMAL_SUPPORT_GUIDE.md](docs/DECIMAL_SUPPORT_GUIDE.md) for complete details.
 
 ## License
 
@@ -365,6 +430,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Inspired by the need for simple, elegant JSON handling in Eiffel
 - Thanks to the Eiffel community for feedback and support
 - AI-assisted development using Claude Sonnet 4.5
+- DECIMAL library for arbitrary precision arithmetic
 
 ## Support
 

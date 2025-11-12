@@ -13,6 +13,7 @@
 		<setting name="dead_code_removal" value="feature"/>
 		<variable name="SYSTEM_PATH" value="D:\prod\simple_json"/>
 		<library name="base" location="$ISE_LIBRARY\library\base\base.ecf"/>
+		<library name="decimal" location="$ISE_LIBRARY\contrib\library\math\decimal\decimal\decimal.ecf"/>
 		<library name="json" location="$ISE_LIBRARY\contrib\library\text\parser\json\library\json.ecf"/>
 		<cluster name="src" location=".\src\" recursive="true"/>
 	</target>
@@ -24,7 +25,6 @@
 		<setting name="console_application" value="true"/>
 		<setting name="total_order_on_reals" value="true"/>
 		<variable name="SYSTEM_PATH" value="D:\prod\simple_json"/>
-		<library name="decimal" location="$ISE_LIBRARY\contrib\library\math\decimal\decimal\decimal.ecf"/>
 		<library name="testing" location="$ISE_LIBRARY\library\testing\testing.ecf"/>
 		<cluster name="test" location=".\testing\" recursive="true"/>
 	</target>

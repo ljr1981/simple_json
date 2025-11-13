@@ -126,7 +126,7 @@ feature -- Test routines: Simple structures
 			pretty: STRING_32
 		do
 			create json
-			value := json.parse ("{%"name%":%"Alice%",%T%"age%":30}")
+			value := json.parse ("{%"name%":%"Alice%",	%"age%":30}")
 			assert_attached ("value_parsed", value)
 			if attached value as v then
 				pretty := v.to_pretty_json
@@ -176,11 +176,11 @@ feature -- Test routines: Nested structures
 
 			pretty := obj.to_pretty_json
 
-				-- Should have multiple lines
+			-- Should have multiple lines
 			lines := pretty.split ('%N')
 			assert ("multiple_lines", lines.count > 5)
 
-				-- Should contain all data
+			-- Should contain all data
 			assert ("contains_name", pretty.has_substring ("name"))
 			assert ("contains_bob", pretty.has_substring ("Bob"))
 			assert ("contains_address", pretty.has_substring ("address"))
@@ -383,44 +383,80 @@ feature -- Test routines: Mixed types
 feature -- Test routines: Unicode
 
 	test_pretty_print_unicode
+			-- Test that \uNNNN codes are translated to actual Unicode characters
 		local
 			json: SIMPLE_JSON
 			obj: SIMPLE_JSON_OBJECT
 			pretty: STRING_32
-			english, chinese, russian, arabic: STRING_32
+			reparsed: detachable SIMPLE_JSON_VALUE
+			chinese, russian, arabic: STRING_32
 		do
 			create json
 
-				-- Create Unicode strings explicitly
-			create english.make_from_string_general ("Hello")
-			create chinese.make_from_string_general ("你好")
-			create russian.make_from_string_general ("Здравствуй")
-			create arabic.make_from_string_general ("мرحبا")
+			-- Create Unicode strings explicitly
+			create chinese.make_from_string ("你好")
+			create russian.make_from_string ("Здравствуй")
+			create arabic.make_from_string ("مرحبا")
 
 			obj := json.new_object
-				.put_string (english, "english")
+				.put_string ("Hello", "english")
 				.put_string (chinese, "chinese")
 				.put_string (russian, "russian")
 				.put_string (arabic, "arabic")
 
 			pretty := obj.to_pretty_json
 
-				--{
-				--  "english": "Hello",
-				--  "chinese": "\u4F60\u597D",
-				--  "russian": "\u0417\u0434\u0440\u0430\u0432\u0441\u0442\u0432\u0443\u0439",
-				--  "arabic": "\u043C\u0631\u062D\u0628\u0627"
-				--}
+			-- Pretty print should translate \uNNNN codes to actual characters
+			assert ("pretty_not_empty", not pretty.is_empty)
+			assert ("has_newlines", pretty.has ('%N'))
+			assert ("contains_literal_chinese", pretty.has_substring (chinese))
+			assert ("contains_literal_russian", pretty.has_substring (russian))
+			assert ("contains_literal_arabic", pretty.has_substring (arabic))
 
-			assert ("contains_english", pretty.has_substring (english))
+			-- Round-trip test: parse the pretty output and verify values preserved
+			reparsed := json.parse (pretty)
+			assert_attached ("reparsed_successfully", reparsed)
 
-			assert ("contains_chinese_coded", pretty.has_substring ("\u4F60\u597D"))
-			assert ("contains_russian_coded", pretty.has_substring ("\u0417\u0434\u0440\u0430\u0432\u0441\u0442\u0432\u0443\u0439"))
-			assert ("contains_arabic_coded", pretty.has_substring ("\u043C\u0631\u062D\u0628\u0627"))
+			if attached reparsed as v then
+				assert ("is_object", v.is_object)
+				if attached v.as_object.string_item ("chinese") as s then
+					assert_strings_equal ("chinese_preserved", chinese, s)
+				else
+					assert ("chinese_exists", False)
+				end
+				if attached v.as_object.string_item ("russian") as s then
+					assert_strings_equal ("russian_preserved", russian, s)
+				else
+					assert ("russian_exists", False)
+				end
+				if attached v.as_object.string_item ("arabic") as s then
+					assert_strings_equal ("arabic_preserved", arabic, s)
+				else
+					assert ("arabic_exists", False)
+				end
+			end
+		end
 
---			assert ("contains_chinese", pretty.has_substring (chinese))
---			assert ("contains_russian", pretty.has_substring (russian))
---			assert ("contains_arabic", pretty.has_substring (arabic))
+	test_pretty_print_unicode_basic
+			-- Test that Unicode strings display as actual characters (not \uNNNN)
+		local
+			json: SIMPLE_JSON
+			obj: SIMPLE_JSON_OBJECT
+			pretty: STRING_32
+		do
+			create json
+
+			obj := json.new_object
+				.put_string ("Hello", "english")
+				.put_string ("你好", "chinese")
+
+			pretty := obj.to_pretty_json
+
+			-- Verify actual Unicode characters appear in output
+			assert ("pretty_not_empty", not pretty.is_empty)
+			assert ("contains_chinese_key", pretty.has_substring ("chinese"))
+			assert ("contains_english_key", pretty.has_substring ("english"))
+			assert ("contains_chinese_value", pretty.has_substring ("你好"))
 		end
 
 feature -- Test routines: Edge cases
@@ -511,10 +547,10 @@ feature -- Test routines: Consistency
 			pretty := obj.to_pretty_json
 			compact := obj.to_json_string
 
-				-- Pretty should be longer (has whitespace)
+			-- Pretty should be longer (has whitespace)
 			assert ("pretty_longer", pretty.count > compact.count)
 
-				-- Pretty should have newlines, compact shouldn't
+			-- Pretty should have newlines, compact shouldn't
 			assert ("pretty_has_newlines", pretty.has ('%N'))
 		end
 

@@ -69,6 +69,8 @@ feature -- Configuration
 		require
 			positive_count: a_count > 0
 			reasonable_count: a_count <= 8
+		local
+			i: INTEGER
 		do
 			create indent_string.make_filled (' ', a_count)
 		ensure
@@ -109,15 +111,15 @@ feature -- Visitor Pattern
 			l_first: BOOLEAN
 		do
 			l_json_array := a_json_array.array_representation
-
+			
 			if l_json_array.is_empty then
 				output.append ("[]")
 			else
 				output.append ("[")
 				output.append_character ('%N')
-
+				
 				increase_indent
-
+				
 				from
 					l_json_array.start
 					l_first := True
@@ -128,16 +130,16 @@ feature -- Visitor Pattern
 						output.append (",")
 						output.append_character ('%N')
 					end
-
+					
 					append_indent
 					l_json_array.item.accept (Current)
-
+					
 					l_json_array.forth
 					l_first := False
 				end
-
+				
 				decrease_indent
-
+				
 				output.append_character ('%N')
 				append_indent
 				output.append ("]")
@@ -173,15 +175,15 @@ feature -- Visitor Pattern
 			l_first: BOOLEAN
 		do
 			l_pairs := a_json_object.map_representation
-
+			
 			if l_pairs.is_empty then
 				output.append ("{}")
 			else
 				output.append ("{")
 				output.append_character ('%N')
-
+				
 				increase_indent
-
+				
 				from
 					l_pairs.start
 					l_first := True
@@ -192,18 +194,18 @@ feature -- Visitor Pattern
 						output.append (",")
 						output.append_character ('%N')
 					end
-
+					
 					append_indent
 					l_pairs.key_for_iteration.accept (Current)
 					output.append (": ")
 					l_pairs.item_for_iteration.accept (Current)
-
+					
 					l_pairs.forth
 					l_first := False
 				end
-
+				
 				decrease_indent
-
+				
 				output.append_character ('%N')
 				append_indent
 				output.append ("}")
@@ -211,11 +213,83 @@ feature -- Visitor Pattern
 		end
 
 	visit_json_string (a_json_string: JSON_STRING)
-			-- Visit `a_json_string'
+			-- Visit `a_json_string' - translates \uNNNN codes to actual Unicode characters
+		local
+			l_unescaped: STRING_32
 		do
 			output.append ("%"")
-			output.append (a_json_string.item)
+			
+			-- Get unescaped Unicode string (converts \u4f60\u597d → 你好)
+			l_unescaped := a_json_string.unescaped_string_32
+			
+			-- Re-escape only special JSON characters, preserve Unicode
+			output.append (escape_json_string (l_unescaped))
+			
 			output.append ("%"")
+		end
+
+feature {NONE} -- Implementation
+
+	utf_converter: UTF_CONVERTER
+			-- UTF conversion utility
+		once
+			create Result
+		end
+
+	escape_json_string (a_string: STRING_32): STRING_32
+			-- Escape special JSON characters while preserving Unicode characters
+			-- The input has already been unescaped (\\uNNNN codes → actual characters)
+			-- This function escapes ONLY: quotes, backslash, control characters
+			-- Result: 你好 stays as 你好 (not converted back to \\u4f60\\u597d)
+		local
+			i: INTEGER
+			c: CHARACTER_32
+			hex: STRING
+		do
+			create Result.make (a_string.count)
+			from
+				i := 1
+			until
+				i > a_string.count
+			loop
+				c := a_string [i]
+				inspect c
+				when '%"' then
+					Result.append ("\%"")
+				when '\' then
+					Result.append ("\\")
+				when '%N' then
+					Result.append ("\n")
+				when '%R' then
+					Result.append ("\r")
+				when '%T' then
+					Result.append ("\t")
+				when '%F' then
+					Result.append ("\f")
+				when '%B' then
+					Result.append ("\b")
+				else
+					-- For control characters (0x00-0x1F), use \uXXXX
+					if c.code < 32 then
+						Result.append ("\u")
+						hex := c.code.to_hex_string
+						-- Pad with zeros to get 4 digits
+						from
+						until
+							hex.count >= 4
+						loop
+							hex.prepend ("0")
+						end
+						Result.append (hex.substring (hex.count - 3, hex.count))
+					else
+						-- Preserve all other characters including Unicode
+						Result.append_character (c)
+					end
+				end
+				i := i + 1
+			end
+		ensure
+			result_not_void: Result /= Void
 		end
 
 feature {NONE} -- Implementation

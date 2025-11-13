@@ -1,115 +1,240 @@
 note
-    description: "Abstract base class for all JSON value types"
-    author: "Larry Rix"
-    date: "November 12, 2025"
-    revision: "2"
+	description: "[
+		Wrapper around JSON_VALUE providing convenient Unicode/UTF-8 string access.
+		All strings are returned as STRING_32 for proper Unicode support.
+		]"
+	date: "$Date$"
+	revision: "$Revision$"
 
-deferred class
-    SIMPLE_JSON_VALUE
+class
+	SIMPLE_JSON_VALUE
+
+create
+	make
+
+feature {NONE} -- Initialization
+
+	make (a_value: JSON_VALUE)
+			-- Initialize with underlying JSON value
+		require
+			value_not_void: a_value /= Void
+		do
+			json_value := a_value
+		ensure
+			value_set: json_value = a_value
+		end
+
+feature -- Access
+
+	json_value: JSON_VALUE
+			-- Underlying JSON value
 
 feature -- Type checking
 
-    is_string: BOOLEAN
-            -- Is Current a string value?
-        deferred
-        end
+	is_string: BOOLEAN
+			-- Is this a string value?
+		do
+			Result := json_value.is_string
+		end
 
-    is_number: BOOLEAN
-            -- Is Current a numeric value?
-        deferred
-        end
+	is_number: BOOLEAN
+			-- Is this a number value?
+		do
+			Result := json_value.is_number
+		end
 
-    is_integer: BOOLEAN
-            -- Is Current an integer value?
-        deferred
-        end
+	is_integer: BOOLEAN
+			-- Is this an integer number value?
+		do
+			if attached {JSON_NUMBER} json_value as l_number then
+				Result := l_number.is_integer
+			end
+		end
 
-    is_real: BOOLEAN
-            -- Is Current a real number value?
-        deferred
-        end
+	is_boolean: BOOLEAN
+			-- Is this a boolean value?
+		do
+			Result := attached {JSON_BOOLEAN} json_value
+		end
 
-    is_boolean: BOOLEAN
-            -- Is Current a boolean value?
-        deferred
-        end
+	is_null: BOOLEAN
+			-- Is this a null value?
+		do
+			Result := json_value.is_null
+		end
 
-    is_null: BOOLEAN
-            -- Is Current a null value?
-        deferred
-        end
+	is_object: BOOLEAN
+			-- Is this an object value?
+		do
+			Result := json_value.is_object
+		end
 
-    is_object: BOOLEAN
-            -- Is Current an object?
-        deferred
-        end
+	is_array: BOOLEAN
+			-- Is this an array value?
+		do
+			Result := json_value.is_array
+		end
 
-    is_array: BOOLEAN
-            -- Is Current an array?
-        deferred
-        end
+feature -- String access (STRING_32 only)
+
+	as_string_32: STRING_32
+			-- Get value as STRING_32 (Unicode)
+		require
+			is_string: is_string
+		do
+			if attached {JSON_STRING} json_value as l_string then
+				Result := l_string.unescaped_string_32
+			else
+				create Result.make_empty
+			end
+		end
+
+	string_value: STRING_32
+			-- Synonym for as_string_32
+		require
+			is_string: is_string
+		do
+			Result := as_string_32
+		end
+
+feature -- Number access
+
+	as_integer: INTEGER_64
+			-- Get value as integer
+		require
+			is_number: is_number
+		do
+			if attached {JSON_NUMBER} json_value as l_number then
+				Result := l_number.integer_64_item
+			end
+		end
+
+	as_natural: NATURAL_64
+			-- Get value as natural
+		require
+			is_number: is_number
+		do
+			if attached {JSON_NUMBER} json_value as l_number then
+				Result := l_number.natural_64_item
+			end
+		end
+
+	as_real: DOUBLE
+			-- Get value as double
+		require
+			is_number: is_number
+		do
+			if attached {JSON_NUMBER} json_value as l_number then
+				Result := l_number.real_64_item
+			end
+		end
+
+	integer_value: INTEGER_64
+			-- Synonym for as_integer
+		require
+			is_number: is_number
+		do
+			Result := as_integer
+		end
+
+	real_value: DOUBLE
+			-- Synonym for as_real
+		require
+			is_number: is_number
+		do
+			Result := as_real
+		end
+
+feature -- Boolean access
+
+	as_boolean: BOOLEAN
+			-- Get value as boolean
+		require
+			is_boolean: is_boolean
+		do
+			if attached {JSON_BOOLEAN} json_value as l_boolean then
+				Result := l_boolean.item
+			end
+		end
+
+	boolean_value: BOOLEAN
+			-- Synonym for as_boolean
+		require
+			is_boolean: is_boolean
+		do
+			Result := as_boolean
+		end
+
+feature -- Object access
+
+	as_object: SIMPLE_JSON_OBJECT
+			-- Get value as object
+		require
+			is_object: is_object
+		do
+			if attached {JSON_OBJECT} json_value as l_object then
+				create Result.make_with_json_object (l_object)
+			else
+				create Result.make -- Empty object
+			end
+		end
+
+	object_value: SIMPLE_JSON_OBJECT
+			-- Synonym for as_object
+		require
+			is_object: is_object
+		do
+			Result := as_object
+		end
+
+feature -- Array access
+
+	as_array: SIMPLE_JSON_ARRAY
+			-- Get value as array
+		require
+			is_array: is_array
+		do
+			if attached {JSON_ARRAY} json_value as l_array then
+				create Result.make_with_json_array (l_array)
+			else
+				create Result.make -- Empty array
+			end
+		end
+
+	array_value: SIMPLE_JSON_ARRAY
+			-- Synonym for as_array
+		require
+			is_array: is_array
+		do
+			Result := as_array
+		end
 
 feature -- Conversion
 
-    to_json_string: STRING
-            -- Convert to JSON string representation
-        deferred
-        ensure
-            result_not_void: Result /= Void
-        end
+	to_json_string: STRING_32
+			-- Convert to JSON string representation (STRING_32)
+		local
+			l_utf8: STRING_8
+		do
+			l_utf8 := json_value.representation
+			Result := utf_converter.utf_8_string_8_to_string_32 (l_utf8)
+		end
 
-feature -- Output
-
-    to_pretty_string (a_indent_level: INTEGER): STRING
-            -- Pretty-printed JSON string with `a_indent_level' indentation.
-            -- Each indent level adds one tab character.
-        require
-            non_negative_indent: a_indent_level >= 0
-        deferred
-        ensure
-            has_result: not Result.is_empty
-        end
-
-feature -- Type checking helpers
-
-    is_numeric: BOOLEAN
-            -- Is this a numeric type (integer, real, or decimal)?
-        do
-            Result := is_integer or is_real or is_number
-        end
-
-    is_container: BOOLEAN
-            -- Is this a container type (object or array)?
-        do
-            Result := is_object or is_array
-        end
-
-    is_primitive: BOOLEAN
-            -- Is this a primitive type?
-        do
-            Result := is_string or is_boolean or is_null or is_numeric
-        end
+	representation: STRING_32
+			-- Synonym for to_json_string
+		do
+			Result := to_json_string
+		end
 
 feature {NONE} -- Implementation
 
-    indent_string (a_level: INTEGER): STRING
-            -- Create indentation string with `a_level' tabs
-        require
-            non_negative: a_level >= 0
-        local
-            l_index: INTEGER
-        do
-            create Result.make_empty
-            from
-                l_index := 1
-            until
-                l_index > a_level
-            loop
-                Result.append_character ('%T')
-                l_index := l_index + 1
-            end
-        ensure
-            correct_length: Result.count = a_level
-        end
+	utf_converter: UTF_CONVERTER
+			-- UTF conversion utility
+		once
+			create Result
+		end
+
+invariant
+	json_value_not_void: json_value /= Void
 
 end

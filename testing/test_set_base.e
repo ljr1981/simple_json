@@ -340,7 +340,7 @@ feature -- String assertions
 			assert (msg, not a_string.is_empty)
 		end
 
-	assert_strings_equal_diff (a_tag: READABLE_STRING_GENERAL; a_expected, a_actual: READABLE_STRING_GENERAL)
+	assert_strings_equal_diff (a_tag: READABLE_STRING_GENERAL; a_expected, a_actual: STRING_32)
 			-- Assert strings are equal with detailed character-by-character diff
 			-- Shows special characters, position of first difference, and metrics
 		require
@@ -366,13 +366,13 @@ feature {NONE} -- String diff implementation
 			c_exp, c_act: CHARACTER_32
 		do
 			create Result.make (200)
-			
+
 			-- Header
 			Result.append_string_general (a_tag)
 			Result.append_string_general ("%N")
 			Result.append_string_general ("================================================================================")
 			Result.append_string_general ("%N")
-			
+
 			-- Metrics
 			exp_len := a_expected.count
 			act_len := a_actual.count
@@ -382,7 +382,7 @@ feature {NONE} -- String diff implementation
 			Result.append_string_general ("Actual length:   ")
 			Result.append_integer (act_len)
 			Result.append_string_general ("%N")
-			
+
 			-- Find first difference
 			first_diff := 0
 			from
@@ -395,27 +395,27 @@ feature {NONE} -- String diff implementation
 				end
 				i := i + 1
 			end
-			
+
 			if first_diff = 0 and exp_len /= act_len then
 				first_diff := exp_len.min (act_len) + 1
 			end
-			
+
 			Result.append_string_general ("First diff at:   position ")
 			Result.append_integer (first_diff)
 			Result.append_string_general ("%N")
 			Result.append_string_general ("================================================================================")
 			Result.append_string_general ("%N")
-			
+
 			-- Expected string with special chars
 			Result.append_string_general ("EXPECTED:%N  ")
 			Result.append_string_general (printable_string (a_expected))
 			Result.append_string_general ("%N")
-			
+
 			-- Actual string with special chars
 			Result.append_string_general ("ACTUAL:%N  ")
 			Result.append_string_general (printable_string (a_actual))
 			Result.append_string_general ("%N")
-			
+
 			-- Character-by-character comparison around first difference
 			if first_diff > 0 then
 				Result.append_string_general ("================================================================================")
@@ -423,7 +423,7 @@ feature {NONE} -- String diff implementation
 				Result.append_string_general ("Character-by-character at difference position ")
 				Result.append_integer (first_diff)
 				Result.append_string_general (":%N")
-				
+
 				from
 					i := (first_diff - 2).max (1)
 				until
@@ -432,7 +432,7 @@ feature {NONE} -- String diff implementation
 					Result.append_string_general ("  Position ")
 					Result.append_integer (i)
 					Result.append_string_general (": ")
-					
+
 					if i <= exp_len then
 						c_exp := a_expected.item (i)
 						Result.append_string_general ("Expected=")
@@ -443,9 +443,9 @@ feature {NONE} -- String diff implementation
 					else
 						Result.append_string_general ("Expected=<END>")
 					end
-					
+
 					Result.append_string_general ("  ")
-					
+
 					if i <= act_len then
 						c_act := a_actual.item (i)
 						Result.append_string_general ("Actual=")
@@ -456,16 +456,16 @@ feature {NONE} -- String diff implementation
 					else
 						Result.append_string_general ("Actual=<END>")
 					end
-					
+
 					if i = first_diff then
 						Result.append_string_general (" <-- FIRST DIFFERENCE")
 					end
-					
+
 					Result.append_string_general ("%N")
 					i := i + 1
 				end
 			end
-			
+
 			Result.append_string_general ("================================================================================")
 		end
 

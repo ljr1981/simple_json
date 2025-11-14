@@ -1,0 +1,225 @@
+note
+	description: "[
+		JSON Patch document (RFC 6902).
+		A sequence of operations to apply to a JSON document.
+		Operations are applied atomically - if any fails, none are applied.
+		]"
+	date: "$Date$"
+	revision: "$Revision$"
+	EIS: "name=RFC 6902", "protocol=URI", "src=https://tools.ietf.org/html/rfc6902"
+
+class
+	SIMPLE_JSON_PATCH
+
+create
+	make,
+	make_from_array
+
+feature {NONE} -- Initialization
+
+	make
+			-- Create empty patch
+		do
+			create operations.make (0)
+		ensure
+			empty: operations.is_empty
+		end
+
+	make_from_array (a_operations: ARRAY [SIMPLE_JSON_PATCH_OPERATION])
+			-- Create patch with operations
+		require
+			operations_not_void: a_operations /= Void
+		do
+			create operations.make (a_operations.count)
+			across
+				a_operations as ic
+			loop
+				operations.force (ic)
+			end
+		ensure
+			count_set: operations.count = a_operations.count
+		end
+
+feature -- Access
+
+	operations: ARRAYED_LIST [SIMPLE_JSON_PATCH_OPERATION]
+			-- List of patch operations
+
+	count: INTEGER
+			-- Number of operations
+		do
+			Result := operations.count
+		ensure
+			definition: Result = operations.count
+		end
+
+	is_empty: BOOLEAN
+			-- Is patch empty?
+		do
+			Result := operations.is_empty
+		ensure
+			definition: Result = operations.is_empty
+		end
+
+feature -- Building (Fluent API)
+
+	add (a_path: STRING_32; a_value: SIMPLE_JSON_VALUE): SIMPLE_JSON_PATCH
+			-- Add an 'add' operation and return Current for chaining
+		require
+			path_not_void: a_path /= Void
+			path_not_empty: not a_path.is_empty
+			value_not_void: a_value /= Void
+		do
+			operations.force (create {SIMPLE_JSON_PATCH_ADD}.make (a_path, a_value))
+			Result := Current
+		ensure
+			operation_added: operations.count = old operations.count + 1
+			returns_current: Result = Current
+		end
+
+	remove (a_path: STRING_32): SIMPLE_JSON_PATCH
+			-- Add a 'remove' operation and return Current for chaining
+		require
+			path_not_void: a_path /= Void
+			path_not_empty: not a_path.is_empty
+		do
+			operations.force (create {SIMPLE_JSON_PATCH_REMOVE}.make (a_path))
+			Result := Current
+		ensure
+			operation_added: operations.count = old operations.count + 1
+			returns_current: Result = Current
+		end
+
+	replace (a_path: STRING_32; a_value: SIMPLE_JSON_VALUE): SIMPLE_JSON_PATCH
+			-- Add a 'replace' operation and return Current for chaining
+		require
+			path_not_void: a_path /= Void
+			path_not_empty: not a_path.is_empty
+			value_not_void: a_value /= Void
+		do
+			operations.force (create {SIMPLE_JSON_PATCH_REPLACE}.make (a_path, a_value))
+			Result := Current
+		ensure
+			operation_added: operations.count = old operations.count + 1
+			returns_current: Result = Current
+		end
+
+	move (a_from: STRING_32; a_to: STRING_32): SIMPLE_JSON_PATCH
+			-- Add a 'move' operation and return Current for chaining
+		require
+			from_not_void: a_from /= Void
+			from_not_empty: not a_from.is_empty
+			to_not_void: a_to /= Void
+			to_not_empty: not a_to.is_empty
+		do
+			operations.force (create {SIMPLE_JSON_PATCH_MOVE}.make (a_from, a_to))
+			Result := Current
+		ensure
+			operation_added: operations.count = old operations.count + 1
+			returns_current: Result = Current
+		end
+
+	copy_value (a_from: STRING_32; a_to: STRING_32): SIMPLE_JSON_PATCH
+			-- Add a 'copy' operation and return Current for chaining
+		require
+			from_not_void: a_from /= Void
+			from_not_empty: not a_from.is_empty
+			to_not_void: a_to /= Void
+			to_not_empty: not a_to.is_empty
+		do
+			operations.force (create {SIMPLE_JSON_PATCH_COPY}.make (a_from, a_to))
+			Result := Current
+		ensure
+			operation_added: operations.count = old operations.count + 1
+			returns_current: Result = Current
+		end
+
+	test (a_path: STRING_32; a_value: SIMPLE_JSON_VALUE): SIMPLE_JSON_PATCH
+			-- Add a 'test' operation and return Current for chaining
+		require
+			path_not_void: a_path /= Void
+			path_not_empty: not a_path.is_empty
+			value_not_void: a_value /= Void
+		do
+			operations.force (create {SIMPLE_JSON_PATCH_TEST}.make (a_path, a_value))
+			Result := Current
+		ensure
+			operation_added: operations.count = old operations.count + 1
+			returns_current: Result = Current
+		end
+
+feature -- Operations
+
+	apply (a_document: SIMPLE_JSON_VALUE): SIMPLE_JSON_PATCH_RESULT
+			-- Apply all operations atomically to document
+			-- If any operation fails, the entire patch fails
+		require
+			document_not_void: a_document /= Void
+		local
+			l_current: SIMPLE_JSON_VALUE
+			l_result: SIMPLE_JSON_PATCH_RESULT
+			l_op_number: INTEGER
+		do
+			l_current := a_document
+			l_op_number := 1
+			
+			across
+				operations as ic
+			loop
+				l_result := ic.apply (l_current)
+				
+				if l_result.is_success and attached l_result.modified_document as l_doc then
+					-- Continue with modified document
+					l_current := l_doc
+				else
+					-- Operation failed - abort patch
+					create Result.make_failure (
+						"Operation " + l_op_number.out + " (" + ic.op + ") failed: " + l_result.error_message
+					)
+					Result := l_result
+				end
+				
+				l_op_number := l_op_number + 1
+			end
+			
+			-- All operations succeeded
+			if Result = Void then
+				create Result.make_success (l_current)
+			end
+		ensure
+			result_not_void: Result /= Void
+		end
+
+feature -- Conversion
+
+	to_json_array: SIMPLE_JSON_ARRAY
+			-- Convert patch to JSON array for serialization
+		local
+			l_json: SIMPLE_JSON
+		do
+			create l_json
+			Result := l_json.new_array
+			
+			across
+				operations as ic
+			loop
+				Result := Result.add_object (ic.to_json_object)
+			end
+		ensure
+			result_not_void: Result /= Void
+			correct_count: Result.count = operations.count
+		end
+
+	to_json_string: STRING_32
+			-- Convert patch to JSON string
+		do
+			Result := to_json_array.to_json_string
+		ensure
+			result_not_void: Result /= Void
+		end
+
+note
+	copyright: "2025, Larry Rix"
+	license: "MIT License"
+
+end

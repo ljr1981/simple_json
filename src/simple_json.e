@@ -641,4 +641,109 @@ feature {NONE} -- Implementation
 			end
 		end
 
+
+feature -- JSON Patch (RFC 6902)
+
+	create_patch: SIMPLE_JSON_PATCH
+			-- Create a new empty JSON Patch
+		do
+			create Result.make
+		ensure
+			result_not_void: Result /= Void
+			empty: Result.is_empty
+		end
+
+	parse_patch (a_patch_json: STRING_32): detachable SIMPLE_JSON_PATCH
+			-- Parse JSON Patch document from string
+		require
+			patch_not_empty: not a_patch_json.is_empty
+		local
+			l_value: detachable SIMPLE_JSON_VALUE
+			l_array: SIMPLE_JSON_ARRAY
+			l_op_obj: SIMPLE_JSON_OBJECT
+			l_op_name, l_path, l_from: STRING_32
+			l_val: detachable SIMPLE_JSON_VALUE
+			l_operation: detachable SIMPLE_JSON_PATCH_OPERATION
+			i: INTEGER
+			l_item: SIMPLE_JSON_VALUE
+		do
+			-- Parse the JSON
+			l_value := parse (a_patch_json)
+			
+			if attached l_value and then l_value.is_array then
+				create Result.make
+				l_array := l_value.as_array
+				
+				-- Parse each operation
+				from
+					i := 1
+				until
+					i > l_array.count
+				loop
+					l_item := l_array.item (i)
+					
+					if l_item.is_object then
+						l_op_obj := l_item.as_object
+						
+						-- Get operation name
+						if attached l_op_obj.string_item ("op") as l_op then
+							l_op_name := l_op
+							
+							-- Get path
+							if attached l_op_obj.string_item ("path") as l_p then
+								l_path := l_p
+								
+								-- Get optional value
+								l_val := l_op_obj.item ("value")
+								
+								-- Get optional from
+								l_from := ""
+								if attached l_op_obj.string_item ("from") as l_f then
+									l_from := l_f
+								end
+								
+								-- Create appropriate operation
+								l_operation := Void
+								if l_op_name.is_equal ("add") and attached l_val then
+									create {SIMPLE_JSON_PATCH_ADD} l_operation.make (l_path, l_val)
+								elseif l_op_name.is_equal ("remove") then
+									create {SIMPLE_JSON_PATCH_REMOVE} l_operation.make (l_path)
+								elseif l_op_name.is_equal ("replace") and attached l_val then
+									create {SIMPLE_JSON_PATCH_REPLACE} l_operation.make (l_path, l_val)
+								elseif l_op_name.is_equal ("test") and attached l_val then
+									create {SIMPLE_JSON_PATCH_TEST} l_operation.make (l_path, l_val)
+								elseif l_op_name.is_equal ("move") and not l_from.is_empty then
+									create {SIMPLE_JSON_PATCH_MOVE} l_operation.make (l_from, l_path)
+								elseif l_op_name.is_equal ("copy") and not l_from.is_empty then
+									create {SIMPLE_JSON_PATCH_COPY} l_operation.make (l_from, l_path)
+								end
+								
+								-- Add operation to patch if created successfully
+								if attached l_operation and then l_operation.is_valid then
+									Result.operations.force (l_operation)
+								end
+							end
+						end
+					end
+					
+					i := i + 1
+				end
+			end
+		end
+
+	apply_patch (a_document: SIMPLE_JSON_VALUE; a_patch_json: STRING_32): SIMPLE_JSON_PATCH_RESULT
+			-- Parse patch and apply to document
+		require
+			document_not_void: a_document /= Void
+			patch_not_empty: not a_patch_json.is_empty
+		do
+			if attached parse_patch (a_patch_json) as l_patch then
+				Result := l_patch.apply (a_document)
+			else
+				create Result.make_failure ("Failed to parse patch document")
+			end
+		ensure
+			result_not_void: Result /= Void
+		end
+
 end

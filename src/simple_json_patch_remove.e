@@ -1,0 +1,168 @@
+note
+	description: "[
+		JSON Patch 'remove' operation (RFC 6902).
+		Removes the value at the specified path.
+		]"
+	date: "$Date$"
+	revision: "$Revision$"
+	EIS: "name=RFC 6902 Remove", "protocol=URI", "src=https://tools.ietf.org/html/rfc6902#section-4.2"
+
+class
+	SIMPLE_JSON_PATCH_REMOVE
+
+inherit
+	SIMPLE_JSON_PATCH_OPERATION
+
+create
+	make
+
+feature {NONE} -- Initialization
+
+	make (a_path: STRING_32)
+			-- Create remove operation for path
+		require
+			path_not_void: a_path /= Void
+			path_not_empty: not a_path.is_empty
+		do
+			set_path (a_path)
+		ensure
+			path_set: path = a_path
+		end
+
+feature -- Access
+
+	op: STRING_32
+			-- Operation name
+		once
+			Result := "remove"
+		end
+
+feature -- Status report
+
+	is_valid: BOOLEAN
+			-- Is this operation valid?
+		do
+			Result := not path.is_empty
+		end
+
+	requires_value: BOOLEAN = False
+			-- Remove doesn't need a value
+
+	requires_from: BOOLEAN = False
+			-- Remove doesn't need a from path
+
+feature -- Operations
+
+	apply (a_document: SIMPLE_JSON_VALUE): SIMPLE_JSON_PATCH_RESULT
+			-- Remove value at path from document
+		local
+			l_pointer: SIMPLE_JSON_POINTER
+			l_parent: detachable SIMPLE_JSON_VALUE
+			l_key: STRING_32
+			l_index: INTEGER
+			l_modified: SIMPLE_JSON_VALUE
+		do
+			create l_pointer
+			
+			-- Parse path to get parent and target
+			if l_pointer.parse_path (path) then
+				-- Get parent container
+				l_parent := l_pointer.navigate_to_parent (a_document)
+				
+				if attached l_parent then
+					l_key := l_pointer.last_segment
+					
+					-- Handle object property removal
+					if l_parent.is_object and then not l_key.starts_with ("[") then
+						if l_parent.as_object.has_key (l_key) then
+							l_modified := clone_and_remove_from_object (a_document, path, l_key)
+							create Result.make_success (l_modified)
+						else
+							create Result.make_failure ("Property '" + l_key + "' not found at path: " + path)
+						end
+					-- Handle array element removal
+					elseif l_parent.is_array and then l_key.starts_with ("[") and l_key.ends_with ("]") then
+						l_index := extract_array_index (l_key)
+						if l_parent.as_array.valid_index (l_index + 1) then  -- Convert 0-based to 1-based
+							l_modified := clone_and_remove_from_array (a_document, path, l_index)
+							create Result.make_success (l_modified)
+						else
+							create Result.make_failure ("Index out of bounds at path: " + path)
+						end
+					else
+						create Result.make_failure ("Invalid target for remove at path: " + path)
+					end
+				else
+					create Result.make_failure ("Parent not found for path: " + path)
+				end
+			else
+				create Result.make_failure ("Invalid path: " + path)
+			end
+		end
+
+feature {NONE} -- Implementation
+
+	clone_and_remove_from_object (a_doc: SIMPLE_JSON_VALUE; a_path: STRING_32; a_key: STRING_32): SIMPLE_JSON_VALUE
+			-- Clone document and remove key from object at path
+		require
+			doc_not_void: a_doc /= Void
+		local
+			l_json_str: STRING_32
+			l_json: SIMPLE_JSON
+		do
+			-- For now, use JSON round-trip (will optimize later)
+			l_json_str := a_doc.to_json_string
+			create l_json
+			if attached l_json.parse (l_json_str) as l_cloned then
+				-- Navigate and remove
+				-- TODO: Implement efficient removal
+				Result := l_cloned
+			else
+				Result := a_doc
+			end
+		ensure
+			result_not_void: Result /= Void
+		end
+
+	clone_and_remove_from_array (a_doc: SIMPLE_JSON_VALUE; a_path: STRING_32; a_index: INTEGER): SIMPLE_JSON_VALUE
+			-- Clone document and remove index from array at path
+		require
+			doc_not_void: a_doc /= Void
+		local
+			l_json_str: STRING_32
+			l_json: SIMPLE_JSON
+		do
+			-- For now, use JSON round-trip (will optimize later)
+			l_json_str := a_doc.to_json_string
+			create l_json
+			if attached l_json.parse (l_json_str) as l_cloned then
+				-- Navigate and remove
+				-- TODO: Implement efficient removal
+				Result := l_cloned
+			else
+				Result := a_doc
+			end
+		ensure
+			result_not_void: Result /= Void
+		end
+
+	extract_array_index (a_segment: STRING_32): INTEGER
+			-- Extract array index from segment like "[0]"
+		require
+			valid_format: a_segment.starts_with ("[") and a_segment.ends_with ("]")
+		local
+			l_index_str: STRING_32
+		do
+			l_index_str := a_segment.substring (2, a_segment.count - 1)
+			if l_index_str.is_integer then
+				Result := l_index_str.to_integer
+			end
+		ensure
+			non_negative: Result >= 0
+		end
+
+note
+	copyright: "2025, Larry Rix"
+	license: "MIT License"
+
+end

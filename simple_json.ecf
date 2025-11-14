@@ -17,7 +17,9 @@
 		<library name="encoder" location="$ISE_LIBRARY\contrib\library\web\framework\ewf\text\encoder\encoder.ecf"/>
 		<library name="encoding" location="$ISE_LIBRARY\library\encoding\encoding.ecf"/>
 		<library name="json" location="$ISE_LIBRARY\contrib\library\text\parser\json\library\json.ecf"/>
+		<library name="logging" location="$ISE_LIBRARY\library\runtime\logging\logging.ecf"/>
 		<library name="regexp" location="$ISE_LIBRARY\contrib\library\gobo\library\regexp\src\library.ecf"/>
+		<library name="time" location="$ISE_LIBRARY\library\time\time.ecf"/>
 		<cluster name="src" location=".\src\" recursive="true"/>
 	</target>
 	<target name="simple_json_tests" extends="simple_json">
@@ -30,5 +32,10 @@
 		<variable name="SYSTEM_PATH" value="D:\prod\simple_json"/>
 		<library name="testing" location="$ISE_LIBRARY\library\testing\testing.ecf"/>
 		<cluster name="test" location=".\testing\" recursive="true"/>
+	</target>
+	<target name="simple_json_benchmark" extends="simple_json_tests">
+		<description>benchmarking code</description>
+		<root class="BENCHMARK_APP" feature="make"/>
+		<cluster name="benchmark" location="D:\prod\simple_json\testing_benchmark\" recursive="true"/>
 	</target>
 </system>

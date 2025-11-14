@@ -255,6 +255,85 @@ feature -- Building
 			create Result.make (l_json_null)
 		end
 
+feature -- JSONPath Queries
+
+	query_string (a_value: SIMPLE_JSON_VALUE; a_path: STRING_32): detachable STRING_32
+			-- Query for a single string value using JSONPath.
+			-- Returns Void if path not found or value is not a string.
+			-- Example paths: "$.person.name", "$.person.address.street", "$.hobbies[0]"
+		require
+			value_not_void: a_value /= Void
+			path_not_empty: not a_path.is_empty
+		local
+			l_result_value: detachable SIMPLE_JSON_VALUE
+		do
+			l_result_value := query_single_value (a_value, a_path)
+			if attached l_result_value and then l_result_value.is_string then
+				Result := l_result_value.as_string_32
+			end
+		end
+
+	query_integer (a_value: SIMPLE_JSON_VALUE; a_path: STRING_32): INTEGER_64
+			-- Query for a single integer value using JSONPath.
+			-- Returns 0 if path not found or value is not an integer.
+			-- Example paths: "$.person.age", "$.counts[0]"
+		require
+			value_not_void: a_value /= Void
+			path_not_empty: not a_path.is_empty
+		local
+			l_result_value: detachable SIMPLE_JSON_VALUE
+		do
+			l_result_value := query_single_value (a_value, a_path)
+			if attached l_result_value and then l_result_value.is_integer then
+				Result := l_result_value.as_integer
+			end
+		end
+
+	query_strings (a_value: SIMPLE_JSON_VALUE; a_path: STRING_32): ARRAYED_LIST [STRING_32]
+			-- Query for multiple string values using JSONPath with wildcards.
+			-- Returns empty list if path not found or values are not strings.
+			-- Example paths: "$.hobbies[*]", "$.people[*].name"
+		require
+			value_not_void: a_value /= Void
+			path_not_empty: not a_path.is_empty
+		local
+			l_values: ARRAYED_LIST [SIMPLE_JSON_VALUE]
+		do
+			create Result.make (0)
+			l_values := query_multiple_values (a_value, a_path)
+			across
+				l_values as ic
+			loop
+				if ic.is_string then
+					Result.force (ic.as_string_32)
+				end
+			end
+		ensure
+			result_not_void: Result /= Void
+		end
+
+	query_integers (a_value: SIMPLE_JSON_VALUE; a_path: STRING_32): ARRAYED_LIST [INTEGER_64]
+			-- Query for multiple integer values using JSONPath with wildcards.
+			-- Returns empty list if path not found or values are not integers.
+			-- Example paths: "$.counts[*]", "$.people[*].age"
+		require
+			value_not_void: a_value /= Void
+			path_not_empty: not a_path.is_empty
+		local
+			l_values: ARRAYED_LIST [SIMPLE_JSON_VALUE]
+		do
+			create Result.make (0)
+			l_values := query_multiple_values (a_value, a_path)
+			across
+				l_values as ic
+			loop
+				if ic.is_integer then
+					Result.force (ic.as_integer)
+				end
+			end
+		ensure
+			result_not_void: Result /= Void
+		end
 feature {NONE} -- Implementation
 
 	last_json_text: detachable STRING_32
@@ -352,6 +431,214 @@ feature {NONE} -- Implementation
 			-- UTF conversion utility
 		once
 			create Result
+		end
+
+
+	query_single_value (a_value: SIMPLE_JSON_VALUE; a_path: STRING_32): detachable SIMPLE_JSON_VALUE
+			-- Navigate path and return single value
+		require
+			value_not_void: a_value /= Void
+			path_not_empty: not a_path.is_empty
+		local
+			l_segments: LIST [STRING_32]
+			l_current: detachable SIMPLE_JSON_VALUE
+		do
+			l_segments := parse_json_path (a_path)
+			l_current := a_value
+			
+			across
+				l_segments as ic
+			until
+				l_current = Void
+			loop
+				l_current := navigate_segment (l_current, ic)
+			end
+			
+			Result := l_current
+		end
+
+	query_multiple_values (a_value: SIMPLE_JSON_VALUE; a_path: STRING_32): ARRAYED_LIST [SIMPLE_JSON_VALUE]
+			-- Navigate path with wildcards and return all matching values
+		require
+			value_not_void: a_value /= Void
+			path_not_empty: not a_path.is_empty
+		local
+			l_segments: LIST [STRING_32]
+			l_current_set: ARRAYED_LIST [SIMPLE_JSON_VALUE]
+			l_next_set: ARRAYED_LIST [SIMPLE_JSON_VALUE]
+			l_result_value: detachable SIMPLE_JSON_VALUE
+			l_segment: STRING_32
+			l_current_value: SIMPLE_JSON_VALUE
+		do
+			create Result.make (0)
+			l_segments := parse_json_path (a_path)
+			
+			create l_current_set.make (1)
+			l_current_set.force (a_value)
+			
+			across
+				l_segments as ic
+			loop
+				l_segment := ic
+				create l_next_set.make (0)
+				
+				across
+					l_current_set as curr_ic
+				loop
+					l_current_value := curr_ic
+					if is_wildcard_segment (l_segment) then
+						-- Expand wildcard
+						expand_wildcard (l_current_value, l_next_set)
+					else
+						-- Navigate single segment
+						l_result_value := navigate_segment (l_current_value, l_segment)
+						if attached l_result_value then
+							l_next_set.force (l_result_value)
+						end
+					end
+				end
+				
+				l_current_set := l_next_set
+			end
+			
+			Result := l_current_set
+		ensure
+			result_not_void: Result /= Void
+		end
+
+	parse_json_path (a_path: STRING_32): LIST [STRING_32]
+			-- Parse JSONPath into segments
+			-- Supports: $.key, $.key.nested, $.array[0], $.array[*]
+		require
+			path_not_empty: not a_path.is_empty
+		local
+			l_path: STRING_32
+			l_segments: ARRAYED_LIST [STRING_32]
+			l_segment: STRING_32
+			i: INTEGER
+			l_bracket_start: INTEGER
+		do
+			create l_segments.make (5)
+			l_path := a_path.twin
+			
+			-- Remove leading "$." if present
+			if l_path.starts_with ("$.") then
+				l_path := l_path.substring (3, l_path.count)
+			elseif l_path.starts_with ("$") then
+				l_path := l_path.substring (2, l_path.count)
+			end
+			
+			-- Split by dots and handle brackets
+			create l_segment.make_empty
+			from
+				i := 1
+			until
+				i > l_path.count
+			loop
+				if l_path [i] = '.' then
+					if not l_segment.is_empty then
+						l_segments.force (l_segment.twin)
+						l_segment.wipe_out
+					end
+				elseif l_path [i] = '[' then
+					-- Add segment before bracket
+					if not l_segment.is_empty then
+						l_segments.force (l_segment.twin)
+						l_segment.wipe_out
+					end
+					
+					-- Find closing bracket
+					l_bracket_start := i
+					from
+						i := i + 1
+					until
+						i > l_path.count or l_path [i] = ']'
+					loop
+						l_segment.append_character (l_path [i])
+						i := i + 1
+					end
+					
+					-- Add bracket content as segment (either index or wildcard)
+					if not l_segment.is_empty then
+						l_segments.force ("[" + l_segment.twin + "]")
+						l_segment.wipe_out
+					end
+				else
+					l_segment.append_character (l_path [i])
+				end
+				
+				i := i + 1
+			end
+			
+			-- Add final segment
+			if not l_segment.is_empty then
+				l_segments.force (l_segment)
+			end
+			
+			Result := l_segments
+		ensure
+			result_not_void: Result /= Void
+		end
+
+	navigate_segment (a_value: SIMPLE_JSON_VALUE; a_segment: STRING_32): detachable SIMPLE_JSON_VALUE
+			-- Navigate one segment of the path
+		require
+			value_not_void: a_value /= Void
+			segment_not_empty: not a_segment.is_empty
+		local
+			l_index: INTEGER
+			l_index_str: STRING_32
+		do
+			if a_segment.starts_with ("[") and a_segment.ends_with ("]") then
+				-- Array access: [0], [1], etc.
+				l_index_str := a_segment.substring (2, a_segment.count - 1)
+				if l_index_str.is_integer then
+					l_index := l_index_str.to_integer
+					if a_value.is_array then
+						-- Convert from 0-based JSONPath indexing to 1-based Eiffel indexing
+						if a_value.as_array.valid_index (l_index + 1) then
+							Result := a_value.as_array.item (l_index + 1)
+						end
+					end
+				end
+			elseif a_value.is_object then
+				-- Object property access
+				Result := a_value.as_object.item (a_segment)
+			end
+		end
+
+	is_wildcard_segment (a_segment: STRING_32): BOOLEAN
+			-- Check if segment is a wildcard [*]
+		require
+			segment_not_empty: not a_segment.is_empty
+		do
+			Result := a_segment.is_equal ("[*]")
+		end
+
+	expand_wildcard (a_value: SIMPLE_JSON_VALUE; a_result_list: ARRAYED_LIST [SIMPLE_JSON_VALUE])
+			-- Expand wildcard by adding all array elements to result list
+		require
+			value_not_void: a_value /= Void
+			result_list_not_void: a_result_list /= Void
+		local
+			i: INTEGER
+			l_item: detachable SIMPLE_JSON_VALUE
+		do
+			if a_value.is_array then
+				from
+					i := 1  -- Eiffel uses 1-based indexing
+				until
+					i > a_value.as_array.count
+				loop
+					if a_value.as_array.valid_index (i) then
+						l_item := a_value.as_array.item (i)
+						if attached l_item then
+							a_result_list.force (l_item)
+						end
+					end
+					i := i + 1
+				end
+			end
 		end
 
 end

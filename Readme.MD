@@ -8,7 +8,7 @@ A comprehensive, Unicode-first JSON library for Eiffel with an intuitive API, ad
 
 ## Overview
 
-SIMPLE_JSON provides a complete, high-level API for working with JSON in Eiffel applications. Built on the standard Eiffel JSON library, it offers modern features including JSON Pointer navigation, JSON Patch operations (RFC 6902), and comprehensive error handling—all with full Unicode/UTF-8 support.
+SIMPLE_JSON provides a complete, high-level API for working with JSON in Eiffel applications. Built on the standard Eiffel JSON library, it offers modern features including JSON Pointer navigation, JSON Patch operations (RFC 6902), JSONPath queries, JSON Schema validation, and comprehensive error handling—all with full Unicode/UTF-8 support.
 
 **AI-Assisted Development:** Developed interactively using Claude Sonnet 4.5 with Design by Contract principles and 100% test coverage.
 
@@ -25,6 +25,8 @@ SIMPLE_JSON provides a complete, high-level API for working with JSON in Eiffel 
 ### Advanced Features
 - **🧭 JSON Pointer (RFC 6901)**: Path-based navigation (`/users/0/name`)
 - **🔧 JSON Patch (RFC 6902)**: Standard document modification operations
+- **🔍 JSONPath Queries**: Flexible queries with wildcards (`$.people[*].name`)
+- **✓ JSON Schema Validation**: Validate documents against schemas
 - **📍 Position Tracking**: Line/column information for parse errors
 - **🎯 Design by Contract**: Full DbC with preconditions, postconditions, invariants
 - **🧪 Well-Tested**: 100% test coverage with 200+ tests
@@ -32,8 +34,10 @@ SIMPLE_JSON provides a complete, high-level API for working with JSON in Eiffel 
 ### What Makes This Special
 
 **No Other Eiffel JSON Library Provides:**
+- JSON Schema validation - Validate documents against schemas
 - JSON Patch (RFC 6902) support
 - JSON Pointer (RFC 6901) navigation
+- JSONPath queries with wildcards
 - Position-aware error tracking
 - Fluent API with proper CQS compliance
 - 100% STRING_32 public API
@@ -179,6 +183,103 @@ end
 - Object property operations
 - Serialization to/from JSON
 
+### JSONPath Queries
+
+Query JSON documents using intuitive path expressions with wildcards:
+
+```eiffel
+local
+    json: SIMPLE_JSON
+    doc: detachable SIMPLE_JSON_VALUE
+do
+    create json
+    doc := json.parse ('{
+        "people": [
+            {"name": "Alice", "age": 30},
+            {"name": "Bob", "age": 25},
+            {"name": "Charlie", "age": 35}
+        ]
+    }')
+    
+    if attached doc then
+        -- Query single value
+        if attached json.query_string (doc, "$.people[0].name") as name then
+            print (name)  -- Alice
+        end
+        
+        -- Query with wildcard - get all names
+        across json.query_strings (doc, "$.people[*].name") as ic loop
+            print (ic.item)  -- Alice, Bob, Charlie
+        end
+        
+        -- Query multiple integers
+        across json.query_integers (doc, "$.people[*].age") as ic loop
+            print (ic.item.out)  -- 30, 25, 35
+        end
+    end
+end
+```
+
+**JSONPath features:**
+- Simple dot notation: `$.person.name`
+- Nested paths: `$.person.address.street`
+- Array indexing: `$.hobbies[0]` (0-based)
+- Wildcard queries: `$.people[*].name` (all names from array)
+- Type-safe results: `query_string`, `query_integer`, `query_strings`, `query_integers`
+- Returns Void/empty for nonexistent paths
+
+### JSON Schema Validation
+
+Validate JSON documents against schemas to ensure data integrity:
+
+```eiffel
+local
+    json: SIMPLE_JSON
+    validator: SIMPLE_JSON_SCHEMA_VALIDATOR
+    schema: SIMPLE_JSON_SCHEMA
+    doc: detachable SIMPLE_JSON_VALUE
+    result: SIMPLE_JSON_SCHEMA_VALIDATION_RESULT
+do
+    create json
+    create validator.make
+    
+    -- Define schema
+    create schema.make_from_string ('{
+        "type": "object",
+        "properties": {
+            "name": {"type": "string", "minLength": 1},
+            "age": {"type": "integer", "minimum": 0, "maximum": 150},
+            "email": {"type": "string", "pattern": "^[^@]+@[^@]+\\.[^@]+$"}
+        },
+        "required": ["name", "age"]
+    }')
+    
+    -- Validate document
+    doc := json.parse ('{"name": "Alice", "age": 30, "email": "alice@example.com"}')
+    
+    if attached doc as al_doc then
+        result := validator.validate (al_doc, schema)
+        
+        if result.is_valid then
+            print ("Document is valid")
+        else
+            across result.errors as ic loop
+                print (ic.item)  -- Detailed error messages
+            end
+        end
+    end
+end
+```
+
+**Schema validation features:**
+- Type validation: `string`, `number`, `integer`, `boolean`, `object`, `array`, `null`
+- String constraints: `minLength`, `maxLength`, `pattern` (regex)
+- Number constraints: `minimum`, `maximum`
+- Array constraints: `minItems`, `maxItems`, `uniqueItems`
+- Object constraints: `properties`, `required`, `additionalProperties`
+- Detailed error messages with paths
+- Production-ready with comprehensive testing
+
 ### Pretty Printing
 
 Format JSON for human readability:
@@ -252,6 +353,12 @@ end
 - `new_array: SIMPLE_JSON_ARRAY`
 - `string_value`, `integer_value`, `number_value`, `boolean_value`, `null_value`
 
+**JSONPath Queries:**
+- `query_string (value, path): detachable STRING_32`
+- `query_integer (value, path): INTEGER_64`
+- `query_strings (value, path): ARRAYED_LIST[STRING_32]`
+- `query_integers (value, path): ARRAYED_LIST[INTEGER_64]`
+
 **Error Handling:**
 - `has_errors: BOOLEAN`
 - `last_errors: LIST[SIMPLE_JSON_ERROR]`
@@ -302,6 +409,37 @@ end
 - `error_message: STRING_32`
 - `has_document: BOOLEAN`
 - `has_error: BOOLEAN`
+
+### SIMPLE_JSON_SCHEMA
+
+**Creation:**
+- `make (schema_value: SIMPLE_JSON_VALUE)`
+- `make_from_string (schema_text: STRING_32)`
+
+**Schema Properties:**
+- `has_type`, `type_value: STRING_32`
+- `has_properties`, `properties: SIMPLE_JSON_OBJECT`
+- `has_required`, `required: ARRAYED_LIST[STRING_32]`
+- `has_minimum`, `minimum: DOUBLE`
+- `has_maximum`, `maximum: DOUBLE`
+- `has_min_length`, `min_length: INTEGER`
+- `has_max_length`, `max_length: INTEGER`
+- `has_pattern`, `pattern: STRING_32`
+
+### SIMPLE_JSON_SCHEMA_VALIDATOR
+
+**Validation:**
+- `validate (instance, schema): SIMPLE_JSON_SCHEMA_VALIDATION_RESULT`
+
+### SIMPLE_JSON_SCHEMA_VALIDATION_RESULT
+
+**Status:**
+- `is_valid: BOOLEAN`
+- `has_errors: BOOLEAN`
+
+**Access:**
+- `errors: LINKED_LIST[STRING_32]`
+- `error_count: INTEGER`
 
 ## Architecture
 
@@ -367,7 +505,8 @@ The library maintains **100% test coverage** with over 200 tests across multiple
 - **TEST_SIMPLE_JSON** (46 tests) - Core parsing and building
 - **TEST_SIMPLE_JSON_PATCH** (46 tests) - JSON Patch operations
 - **TEST_PRETTY_PRINTING** (35 tests) - Pretty printing functionality
-- **TEST_JSON_PATH_QUERIES** - Path-based queries
+- **TEST_JSON_PATH_QUERIES** (15 tests) - JSONPath query operations
+- **TEST_JSON_SCHEMA_VALIDATION** (30+ tests) - Schema validation
 - **TEST_ERROR_TRACKING** - Error position tracking
 
 ### Test Organization
@@ -467,6 +606,39 @@ translations := json.new_object
     .put_string ("🎉 Hello!", "emoji")
 ```
 
+### Data Extraction with JSONPath
+```eiffel
+-- Extract specific data from complex JSON
+if attached json.parse (api_response) as doc then
+    -- Get all product names from array
+    across json.query_strings (doc, "$.products[*].name") as ic loop
+        add_to_catalog (ic.item)
+    end
+    
+    -- Get all prices for calculations
+    across json.query_integers (doc, "$.products[*].price") as ic loop
+        calculate_total (ic.item)
+    end
+end
+```
+
+### Input Validation with Schema
+```eiffel
+-- Validate user input before processing
+create schema.make_from_string (user_profile_schema)
+if attached json.parse (user_input) as input then
+    result := validator.validate (input, schema)
+    
+    if result.is_valid then
+        process_user_profile (input)
+    else
+        across result.errors as ic loop
+            display_validation_error (ic.item)
+        end
+    end
+end
+```
+
 ## Requirements
 
 - **EiffelStudio**: 19.05 or later (void-safe mode required)
@@ -503,6 +675,17 @@ translations := json.new_object
   - Atomic application (all-or-nothing)
   - Array and object operations
   - Serialization support
+- JSONPath Queries - Flexible path queries with wildcards
+  - Single and multiple value queries
+  - Array wildcard support (`[*]`)
+  - Type-safe result methods
+- JSON Schema Validation - Comprehensive schema validation
+  - Type validation (string, number, integer, object, array, boolean, null)
+  - String constraints (minLength, maxLength, pattern)
+  - Number constraints (minimum, maximum)
+  - Array constraints (minItems, maxItems, uniqueItems)
+  - Object constraints (properties, required, additionalProperties)
+  - Detailed error reporting with paths
 
 **Quality:**
 - 100% test coverage (200+ tests)
@@ -512,12 +695,8 @@ translations := json.new_object
 
 ### Future Enhancements 🚀
 
-**High Priority:**
-- [ ] **JSON Schema validation (RFC 8927)** - Would be unique in Eiffel ecosystem
-- [ ] **JSON Merge Patch (RFC 7386)** - Simpler alternative to JSON Patch
-
 **Nice to Have:**
-- [ ] **JSONPath queries** - More flexible than JSON Pointer
+- [ ] **JSON Merge Patch (RFC 7386)** - Simpler alternative to JSON Patch
 - [ ] **Streaming parser** - For very large files (>100MB)
 - [ ] **Performance optimizations** - Profile-driven improvements
 

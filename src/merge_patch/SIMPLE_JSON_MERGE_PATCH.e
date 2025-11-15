@@ -171,10 +171,10 @@ feature {NONE} -- Implementation
 		do
 			-- Create working copy (new local object, not modifying a_target)
 			l_working_copy := deep_copy_target_object (a_target.as_object)
-			
+
 			-- Apply all patch values to working copy
 			l_working_copy := apply_patches_to_object (l_working_copy, a_patch.as_object)
-			
+
 			-- Wrap result in SIMPLE_JSON_VALUE
 			create Result.make (l_working_copy.json_value)
 		ensure
@@ -191,7 +191,7 @@ feature {NONE} -- Implementation
 			-- Create NEW local object (not modifying a_target_obj)
 			create Result.make
 			l_keys := a_target_obj.keys
-			
+
 			-- Build up our new object with deep copied values
 			across l_keys as ic loop
 				if attached a_target_obj.item (ic) as al_value then
@@ -219,7 +219,7 @@ feature {NONE} -- Implementation
 		do
 			Result := a_working_copy
 			l_keys := a_patch_obj.keys
-			
+
 			-- Apply each patch value to our working copy
 			across l_keys as ic loop
 				if attached a_patch_obj.item (ic) as al_patch_value then
@@ -242,14 +242,14 @@ feature {NONE} -- Implementation
 			l_merged_value: SIMPLE_JSON_VALUE
 		do
 			Result := a_working_copy
-			
+
 			-- RFC 7386: null means delete the key
 			if a_patch_value.is_null then
 				Result.remove (a_key)
 			else
 				-- Get existing value if present
 				l_target_value := Result.item (a_key)
-				
+
 				-- If both are objects, recursively merge
 				if l_target_value /= Void and then
 				   l_target_value.is_object and then
@@ -310,10 +310,10 @@ feature {NONE} -- Implementation: Null handling
 		do
 			create l_result.make
 			l_keys := a_object.keys
-			
+
 			across l_keys as ic loop
 				l_value := a_object.item (ic)
-				
+
 				check value_attached: attached l_value as al_value then
 					-- Only add non-null values
 					if not al_value.is_null then
@@ -334,7 +334,7 @@ feature {NONE} -- Implementation: Null handling
 					-- Skip null values entirely - they are omitted from result
 				end
 			end
-			
+
 			Result := l_result
 		ensure
 			result_attached: Result /= Void
@@ -402,6 +402,18 @@ feature {NONE} -- Implementation: Deep copy
 		ensure
 			result_attached: Result /= Void
 		end
+
+invariant
+	-- Core data integrity
+	patch_document_attached: patch_document /= Void
+	validation_errors_attached: validation_errors /= Void
+
+	-- Error state consistency
+	is_valid_definition: is_valid = not has_errors
+	has_errors_definition: has_errors = not validation_errors.is_empty
+
+	-- Error list quality
+	no_void_error_messages: across validation_errors as ic_err all ic_err /= Void end
 
 note
 	copyright: "2025, Larry Rix"

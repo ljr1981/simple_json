@@ -446,7 +446,7 @@ feature {NONE} -- Implementation
 		do
 			l_segments := parse_json_path (a_path)
 			l_current := a_value
-			
+
 			across
 				l_segments as ic
 			until
@@ -454,7 +454,7 @@ feature {NONE} -- Implementation
 			loop
 				l_current := navigate_segment (l_current, ic)
 			end
-			
+
 			Result := l_current
 		end
 
@@ -473,16 +473,16 @@ feature {NONE} -- Implementation
 		do
 			create Result.make (0)
 			l_segments := parse_json_path (a_path)
-			
+
 			create l_current_set.make (1)
 			l_current_set.force (a_value)
-			
+
 			across
 				l_segments as ic
 			loop
 				l_segment := ic
 				create l_next_set.make (0)
-				
+
 				across
 					l_current_set as curr_ic
 				loop
@@ -498,10 +498,10 @@ feature {NONE} -- Implementation
 						end
 					end
 				end
-				
+
 				l_current_set := l_next_set
 			end
-			
+
 			Result := l_current_set
 		ensure
 			result_not_void: Result /= Void
@@ -521,14 +521,14 @@ feature {NONE} -- Implementation
 		do
 			create l_segments.make (5)
 			l_path := a_path.twin
-			
+
 			-- Remove leading "$." if present
 			if l_path.starts_with ("$.") then
 				l_path := l_path.substring (3, l_path.count)
 			elseif l_path.starts_with ("$") then
 				l_path := l_path.substring (2, l_path.count)
 			end
-			
+
 			-- Split by dots and handle brackets
 			create l_segment.make_empty
 			from
@@ -547,7 +547,7 @@ feature {NONE} -- Implementation
 						l_segments.force (l_segment.twin)
 						l_segment.wipe_out
 					end
-					
+
 					-- Find closing bracket
 					l_bracket_start := i
 					from
@@ -558,7 +558,7 @@ feature {NONE} -- Implementation
 						l_segment.append_character (l_path [i])
 						i := i + 1
 					end
-					
+
 					-- Add bracket content as segment (either index or wildcard)
 					if not l_segment.is_empty then
 						l_segments.force ("[" + l_segment.twin + "]")
@@ -567,15 +567,15 @@ feature {NONE} -- Implementation
 				else
 					l_segment.append_character (l_path [i])
 				end
-				
+
 				i := i + 1
 			end
-			
+
 			-- Add final segment
 			if not l_segment.is_empty then
 				l_segments.force (l_segment)
 			end
-			
+
 			Result := l_segments
 		ensure
 			result_not_void: Result /= Void
@@ -670,11 +670,11 @@ feature -- JSON Patch (RFC 6902)
 		do
 			-- Parse the JSON
 			l_value := parse (a_patch_json)
-			
+
 			if attached l_value and then l_value.is_array then
 				create Result.make
 				l_array := l_value.as_array
-				
+
 				-- Parse each operation
 				from
 					i := 1
@@ -682,27 +682,27 @@ feature -- JSON Patch (RFC 6902)
 					i > l_array.count
 				loop
 					l_item := l_array.item (i)
-					
+
 					if l_item.is_object then
 						l_op_obj := l_item.as_object
-						
+
 						-- Get operation name
 						if attached l_op_obj.string_item ("op") as l_op then
 							l_op_name := l_op
-							
+
 							-- Get path
 							if attached l_op_obj.string_item ("path") as l_p then
 								l_path := l_p
-								
+
 								-- Get optional value
 								l_val := l_op_obj.item ("value")
-								
+
 								-- Get optional from
 								l_from := ""
 								if attached l_op_obj.string_item ("from") as l_f then
 									l_from := l_f
 								end
-								
+
 								-- Create appropriate operation
 								l_operation := Void
 								if l_op_name.is_equal ("add") and attached l_val then
@@ -718,7 +718,7 @@ feature -- JSON Patch (RFC 6902)
 								elseif l_op_name.is_equal ("copy") and not l_from.is_empty then
 									create {SIMPLE_JSON_PATCH_COPY} l_operation.make (l_from, l_path)
 								end
-								
+
 								-- Add operation to patch if created successfully
 								if attached l_operation and then l_operation.is_valid then
 									Result.operations.force (l_operation)
@@ -726,7 +726,7 @@ feature -- JSON Patch (RFC 6902)
 							end
 						end
 					end
-					
+
 					i := i + 1
 				end
 			end
@@ -746,5 +746,20 @@ feature -- JSON Patch (RFC 6902)
 		ensure
 			result_not_void: Result /= Void
 		end
+
+invariant
+	-- Error list integrity
+	last_errors_attached: last_errors /= Void
+
+	-- Error state consistency
+	has_errors_definition: has_errors = not last_errors.is_empty
+	error_count_definition: error_count = last_errors.count
+
+	-- Error list quality
+	no_void_errors: across last_errors as ic_err all ic_err /= Void end
+
+	-- First error consistency
+	has_errors_implies_first_error: has_errors implies first_error /= Void
+	no_errors_implies_no_first_error: not has_errors implies first_error = Void
 
 end

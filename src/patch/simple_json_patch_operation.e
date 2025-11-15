@@ -107,17 +107,21 @@ feature -- Conversion
 			Result := l_json.new_object
 				.put_string (op, "op")
 				.put_string (path, "path")
-			
+
 			if attached value as l_value then
 				Result := Result.put_value (l_value, "value")
 			end
-			
+
 			if attached from_path as l_from then
 				Result := Result.put_string (l_from, "from")
 			end
 		ensure
 			result_not_void: Result /= Void
 		end
+
+invariant
+	-- Core data integrity
+	path_attached: path /= Void
 
 note
 	copyright: "2025, Larry Rix"

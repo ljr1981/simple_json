@@ -44,7 +44,7 @@ feature -- Parsing
 		do
 			segments.wipe_out
 			Result := True
-			
+
 			if a_path.is_empty then
 				Result := False
 			elseif a_path.is_equal ("/") then
@@ -52,15 +52,15 @@ feature -- Parsing
 				Result := True
 			else
 				l_path := a_path.twin
-				
+
 				-- Remove leading slash if present
 				if l_path.starts_with ("/") then
 					l_path := l_path.substring (2, l_path.count)
 				end
-				
+
 				-- Split by slash
 				l_parts := l_path.split ('/')
-				
+
 				across
 					l_parts as ic
 				loop
@@ -69,7 +69,7 @@ feature -- Parsing
 						segments.force (unescape_pointer_token (ic))
 					end
 				end
-				
+
 				Result := True
 			end
 		ensure
@@ -87,7 +87,7 @@ feature -- Navigation
 			l_index: INTEGER
 		do
 			l_current := a_document
-			
+
 			across
 				segments as ic
 			until
@@ -112,7 +112,7 @@ feature -- Navigation
 					l_current := Void
 				end
 			end
-			
+
 			Result := l_current
 		end
 
@@ -140,7 +140,7 @@ feature -- Navigation
 					l_parent_segments.force (segments [l_index])
 					l_index := l_index + 1
 				end
-				
+
 				-- Navigate using parent segments
 				l_current := a_document
 				across
@@ -165,7 +165,7 @@ feature -- Navigation
 						l_current := Void
 					end
 				end
-				
+
 				Result := l_current
 			end
 		end
@@ -192,6 +192,14 @@ feature {NONE} -- Implementation
 		do
 			Result := a_segment.is_integer and then a_segment.to_integer >= 0
 		end
+
+invariant
+	-- Segment list integrity
+	segments_attached: segments /= Void
+
+	-- Segment quality
+	no_void_segments: across segments as ic_seg all ic_seg /= Void end
+	no_empty_segments: across segments as ic_seg all not ic_seg.is_empty end
 
 note
 	copyright: "2025, Larry Rix"

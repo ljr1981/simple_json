@@ -228,6 +228,18 @@ feature -- Conversion
 			result_not_void: Result /= Void
 		end
 
+invariant
+	-- Operations list integrity
+	operations_attached: operations /= Void
+
+	-- Count consistency
+	count_definition: count = operations.count
+	is_empty_definition: is_empty = operations.is_empty
+
+	-- Operations quality
+	no_void_operations: across operations as ic_op all ic_op /= Void end
+	all_operations_valid: across operations as ic_op all ic_op.is_valid end
+
 note
 	copyright: "2025, Larry Rix"
 	license: "MIT License"

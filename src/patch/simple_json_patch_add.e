@@ -67,7 +67,7 @@ feature -- Operations
 			l_modified: SIMPLE_JSON_VALUE
 		do
 			create l_pointer
-			
+
 			-- Handle root replacement
 			if path.is_equal ("/") or path.is_equal ("") then
 				if attached value as l_val then
@@ -80,10 +80,10 @@ feature -- Operations
 				if l_pointer.parse_path (path) then
 					-- Get parent container
 					l_parent := l_pointer.navigate_to_parent (a_document)
-					
+
 					if attached l_parent and attached value as l_val then
 						l_key := l_pointer.last_segment
-						
+
 						-- Handle object property addition
 						if l_parent.is_object then
 							l_modified := clone_and_add_to_object (a_document, path, l_key, l_val)
@@ -188,6 +188,14 @@ feature {NONE} -- Implementation
 		do
 			Result := a_str.is_integer and then a_str.to_integer >= 0
 		end
+
+invariant
+	-- Operation identity
+	add_requires_value: requires_value
+	add_not_requires_from: not requires_from
+
+	-- Validation consistency
+	valid_definition: is_valid = (not path.is_empty and value /= Void)
 
 note
 	copyright: "2025, Larry Rix"

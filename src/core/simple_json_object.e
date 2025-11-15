@@ -305,4 +305,21 @@ feature -- Iteration
 			end
 		end
 
+invariant
+	-- Core type stability
+	json_value_is_object: attached {JSON_OBJECT} json_value
+
+	-- Count relationships
+	count_non_negative: count >= 0
+	empty_definition: is_empty = (count = 0)
+	keys_match_count: keys.count = count
+
+	-- Key integrity
+	no_void_keys: across keys as ic_key all ic_key /= Void end
+	no_empty_keys: across keys as ic_key all not ic_key.is_empty end
+
+	-- Key existence and consistency
+	every_key_exists: across keys as ic_key all has_key (ic_key) end
+	every_key_has_value: across keys as ic_key all item (ic_key) /= Void end
+
 end

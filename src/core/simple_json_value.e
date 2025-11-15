@@ -290,6 +290,33 @@ feature {NONE} -- Implementation
 		end
 
 invariant
-	json_value_not_void: json_value /= Void
+	-- Core data stability
+	json_value_attached: json_value /= Void
 
+	-- Type consistency: Exactly one type must be true
+	valid_json_type:
+		is_string or is_number or is_boolean or is_null or is_object or is_array
+
+	-- Type exclusivity: Only ONE type can be true at a time
+	string_excludes_others: is_string implies
+		(not is_number and not is_boolean and not is_null and not is_object and not is_array)
+	number_excludes_others: is_number implies
+		(not is_string and not is_boolean and not is_null and not is_object and not is_array)
+	boolean_excludes_others: is_boolean implies
+		(not is_string and not is_number and not is_null and not is_object and not is_array)
+	null_excludes_others: is_null implies
+		(not is_string and not is_number and not is_boolean and not is_object and not is_array)
+	object_excludes_others: is_object implies
+		(not is_string and not is_number and not is_boolean and not is_null and not is_array)
+	array_excludes_others: is_array implies
+		(not is_string and not is_number and not is_boolean and not is_null and not is_object)
+
+	-- Type verification: Underlying json_value type matches our type queries
+	string_type_accurate: is_string = (attached {JSON_STRING} json_value)
+	number_type_accurate: is_number = json_value.is_number
+	boolean_type_accurate: is_boolean = (attached {JSON_BOOLEAN} json_value)
+	null_type_accurate: is_null = json_value.is_null
+	object_type_accurate: is_object = json_value.is_object
+	array_type_accurate: is_array = json_value.is_array
+	
 end

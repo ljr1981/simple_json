@@ -238,4 +238,22 @@ feature -- Removal
 			json_value.wipe_out
 		end
 
+invariant
+	-- Core type stability
+	json_value_is_array: attached {JSON_ARRAY} json_value
+
+	-- Count relationships
+	count_non_negative: count >= 0
+	empty_definition: is_empty = (count = 0)
+
+	-- Index validity definition
+	valid_index_lower_bound: across 1 |..| count as ic all valid_index (ic) end
+	invalid_index_zero: not valid_index (0)
+	invalid_index_beyond_count: not valid_index (count + 1)
+
+	-- Element existence (every valid index has a value)
+	every_index_has_value: across 1 |..| count as ic all
+		attached json_value.i_th (ic)
+	end
+
 end

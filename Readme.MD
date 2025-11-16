@@ -143,16 +143,18 @@ Validate JSON documents against JSON Schema Draft 7:
 
 ```eiffel
 schema_text: STRING_32
-    do
-        Result := "{%
-            %"type%": %"object%",%
-            %"properties%": {%
-                %"name%": {%"type%": %"string%"},%
-                %"age%": {%"type%": %"integer%", %"minimum%": 0}%
-            %},%
-            %"required%": [%"name%"]%
-        %}"
-    end
+     do
+         Result := "[
+             {
+                "type": "object",
+                "properties": {
+                   "name": {"type": "string"},
+                   "age": {"type": "integer", "minimum": 0}
+                },
+                "required": ["name"]
+             }
+         ]"
+     end
 
 validate_person (data: STRING_32)
     local

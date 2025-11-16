@@ -20,10 +20,11 @@
 9. [The SHARED Pattern](#the-shared-pattern)
 10. [The CELL Pattern](#the-cell-pattern)
 11. [Once Features](#once-features)
-12. [Generic Patterns](#generic-patterns)
-13. [Testing Patterns](#testing-patterns)
-14. [Advanced Patterns](#advanced-patterns)
-15. [Quick Reference Tables](#quick-reference-tables)
+12. [Constants & Magic Values](#constants--magic-values)
+13. [Generic Patterns](#generic-patterns)
+14. [Testing Patterns](#testing-patterns)
+15. [Advanced Patterns](#advanced-patterns)
+16. [Quick Reference Tables](#quick-reference-tables)
 
 ---
 
@@ -195,11 +196,11 @@ feature {NONE} -- Constants
 
 ### Critical Rules
 
-- âœ“ **Always use standard categories**
-- âœ“ **Never mix categories**
-- âœ“ **Maintain consistent order**
-- âœ— **Don't organize by visibility first**
-- âœ— **Don't create custom categories**
+- Ã¢Å“â€œ **Always use standard categories**
+- Ã¢Å“â€œ **Never mix categories**
+- Ã¢Å“â€œ **Maintain consistent order**
+- Ã¢Å“â€” **Don't organize by visibility first**
+- Ã¢Å“â€” **Don't create custom categories**
 
 ---
 
@@ -535,7 +536,7 @@ optional_value: detachable STRING
 ### If Attached Pattern
 
 ```eiffel
--- âœ“ CORRECT - creates attached local
+-- Ã¢Å“â€œ CORRECT - creates attached local
 if attached optional_value as al_value then
     -- al_value is proven attached
     use (al_value)
@@ -543,7 +544,7 @@ else
     -- handle void case
 end
 
--- âœ— WRONG - check doesn't create attached local
+-- Ã¢Å“â€” WRONG - check doesn't create attached local
 check optional_value /= Void end
 use (optional_value)  -- Still detachable!
 ```
@@ -658,6 +659,60 @@ invariant
     consistent_count: count = items.count
 ```
 
+
+### Constant Visibility in Contracts
+
+**CRITICAL RULE:** Constants referenced in preconditions or postconditions MUST be public.
+
+```eiffel
+-- Ã¢Å“â€” WRONG - Private constant in precondition
+feature {NONE} -- Constants
+    Max_items: INTEGER = 100
+
+feature -- Operations  
+    add (item: ITEM)
+        require
+            not_full: count < Max_items
+            -- ERROR! Client can't see Max_items to verify!
+        do
+            ...
+        end
+
+-- Ã¢Å“" CORRECT - Public constant
+feature -- Constants
+    Max_items: INTEGER = 100
+        -- Public: Used in precondition (client's contract)
+
+feature -- Operations
+    add (item: ITEM)
+        require
+            not_full: count < Max_items
+            -- Client can verify before calling! âœ…
+        do
+            ...
+        end
+```
+
+**Why:** Preconditions are the client's obligation. If constants are private, clients cannot verify they're meeting their obligations!
+
+**Visibility rules:**
+- Constants in preconditions â†’ **PUBLIC** (client needs to verify)
+- Constants in postconditions â†’ **PUBLIC** (client needs to verify)
+- Constants in invariants â†’ Can be private (only class checks)
+- Implementation-only constants â†’ **PRIVATE** (hide internals)
+
+**Example:**
+```eiffel
+feature -- Constants
+    -- Public because used in client contracts
+    Max_key_length: INTEGER = 1024
+
+feature {NONE} -- Constants  
+    -- Private because only used internally
+    Internal_buffer_size: INTEGER = 4096
+```
+
+
 ---
 
 ## The SHARED Pattern
@@ -703,13 +758,13 @@ end
 
 ### When to Use
 
-âœ“ **Use for:**
+Ã¢Å“â€œ **Use for:**
 - Global configurations
 - Expensive-to-create objects
 - Stateless utilities
 - System-wide services
 
-âœ— **Avoid for:**
+Ã¢Å“â€” **Avoid for:**
 - Objects with mutable state
 - Objects needing multiple instances
 - Test fixtures
@@ -790,6 +845,199 @@ thread_buffer: STRING
     once ("THREAD")
         create Result.make (1024)
     end
+```
+
+---
+
+## Constants & Magic Values
+
+### The No Magic Values Rule
+
+**Every literal value in code must be a named constant with semantic meaning.**
+
+### Why This Matters
+
+Magic values make code:
+- **Unreadable** - Numbers/strings without context
+- **Unmaintainable** - Changes require finding all occurrences
+- **Error-prone** - Similar values might mean different things
+- **Unsearchable** - Can't find all uses of a concept
+
+### Manifest Constants
+
+```eiffel
+feature -- Constants
+    Max_reasonable_key_length: INTEGER = 1024
+        -- Maximum reasonable length for JSON keys (1KB)
+        -- Protects against DoS attacks and programming errors
+        
+    Default_buffer_size: INTEGER = 8_192
+        -- Default buffer for JSON parsing (8KB)
+        -- Optimized for typical JSON document sizes
+        
+    Json_object_type: STRING_32 = "object"
+        -- JSON Schema type keyword for objects
+        -- Defined in JSON Schema Draft 7 specification
+```
+
+**Every constant must have:**
+1. Descriptive name explaining what it represents
+2. Comment explaining the value and why
+3. Usage context (where/how it's used)
+4. Rationale for the chosen value
+
+### Constants Class Pattern
+
+**For project-wide constants, create a dedicated constants class:**
+
+```eiffel
+note
+    description: "[
+        Project-wide named constants.
+        Replaces magic values with semantic names.
+    ]"
+    
+class
+    PROJECT_CONSTANTS
+
+feature -- Size limits
+    Max_reasonable_key_length: INTEGER = 1024
+        -- Maximum reasonable length for keys (1KB)
+        
+    Max_reasonable_string_length: INTEGER = 10_000_000
+        -- Maximum reasonable string value (10MB)
+
+feature -- Buffer sizes
+    Default_buffer_size: INTEGER = 8_192
+        -- Default buffer size (8KB)
+        
+    Initial_array_capacity: INTEGER = 16
+        -- Initial capacity for arrays
+
+feature -- Keywords
+    Keyword_object: STRING_32 = "object"
+    Keyword_array: STRING_32 = "array"
+    Keyword_string: STRING_32 = "string"
+
+feature -- Format strings  
+    Format_object_open: STRING_32 = "{"
+    Format_object_close: STRING_32 = "}"
+    Format_array_open: STRING_32 = "["
+    Format_array_close: STRING_32 = "]"
+
+feature -- Special values
+    First_index: INTEGER = 1
+        -- First valid index in Eiffel arrays (1-based)
+        
+    Substring_start_offset: INTEGER = 2
+        -- Offset for substring operations (skip first character)
+
+end
+```
+
+### Using Constants
+
+**Inherit from constants class:**
+
+```eiffel
+class
+    MY_FORMATTER
+
+inherit
+    PROJECT_CONSTANTS  -- Get access to all constants
+
+feature
+    format_object (obj: MY_OBJECT): STRING_32
+        local
+            l_result: STRING_32
+        do
+            create l_result.make (Default_buffer_size)
+            l_result.append (Format_object_open)
+            -- Use constants throughout
+            l_result.append (Format_object_close)
+        end
+end
+```
+
+### What Qualifies as Magic
+
+**ALWAYS replace:**
+- Numeric literals (except 0, 1 in obvious contexts)
+- String literals for types, keywords, formats
+- Buffer/capacity sizes  
+- Array indices and offsets
+
+**Example violations:**
+```eiffel
+-- ❌ WRONG - Magic values
+if key.count > 1024 then            -- What is 1024?
+create buffer.make (8192)           -- Why 8192?
+if type ~ "object" then             -- Magic string
+substring := text.substring (2, n)  -- Why 2?
+```
+
+**Corrected with constants:**
+```eiffel
+-- ✅ CORRECT - Named constants
+if key.count > Max_reasonable_key_length then
+create buffer.make (Default_buffer_size)
+if type ~ Keyword_object then
+substring := text.substring (Substring_start_offset, n)
+```
+
+**EXCEPTIONS - Don't need constants:**
+- Zero in initialization: `count := 0`
+- One in increment: `i := i + 1`  
+- Boolean literals: `True`, `False`
+- Empty checks: `s.is_empty`
+
+### Once Constants vs Manifest Constants
+
+**Manifest constants for simple values:**
+```eiffel
+Max_size: INTEGER = 1024
+Default_name: STRING_32 = "unnamed"
+```
+
+**Once features for computed/allocated constants:**
+```eiffel
+Nan_value: IMMUTABLE_STRING_8
+    once
+        create Result.make_from_string ("NaN")
+    end
+    
+Default_config: CONFIGURATION
+    once
+        create Result
+        Result.load_defaults
+    end
+```
+
+### Project Organization
+
+**For projects with many constants:**
+
+```
+src/
+    constants/
+        project_constants.e      -- Central constants class
+    core/
+        main_class.e            -- Inherits constants
+    utilities/
+        formatter.e             -- Inherits constants
+```
+
+**All implementation classes inherit from constants class:**
+```eiffel
+class
+    IMPLEMENTATION_CLASS
+
+inherit
+    PROJECT_CONSTANTS  -- Always inherit constants
+
+feature
+    -- Use constants in implementation
+end
 ```
 
 ---
@@ -1039,6 +1287,13 @@ Before committing code:
 - [ ] Once for constants/singletons
 - [ ] Across loops preferred
 
+### Constants
+- [ ] No magic values (numbers, strings)
+- [ ] All literals replaced with named constants
+- [ ] Constants in dedicated constants class
+- [ ] Each constant documented with purpose
+- [ ] Classes inherit from constants class
+
 ### Testing
 - [ ] Inherit EQA_TEST_SET
 - [ ] test_ prefix on methods
@@ -1127,7 +1382,7 @@ structures_equal (a, b: STRUCTURE): BOOLEAN
 
 **Always have base cases:**
 ```eiffel
--- ✅ CORRECT - Clear base case
+-- âœ… CORRECT - Clear base case
 process (value: JSON_VALUE)
 	do
 		if value.is_primitive then
@@ -1139,7 +1394,7 @@ process (value: JSON_VALUE)
 		end
 	end
 
--- ❌ WRONG - No base case
+-- âŒ WRONG - No base case
 process (value: JSON_VALUE)
 	do
 		-- Will recurse forever!
@@ -1195,7 +1450,7 @@ note
     license: "MIT License"
     source: "[
         Consolidated from production Eiffel library analysis
-        Updated with recursive patterns
+        Updated with recursive patterns and constants guidance
     ]"
     last_updated: "November 15, 2025"
 end

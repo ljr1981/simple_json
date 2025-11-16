@@ -116,15 +116,15 @@ add_string (s: STRING_32)
 ### When to Use Which
 
 ```eiffel
--- âœ“ Use TYPE-SPECIFIC when you know the type
+-- Ã¢Å“â€œ Use TYPE-SPECIFIC when you know the type
 if al_value.is_object then
     obj.put_object (al_value.as_object, key).do_nothing
 end
 
--- âœ“ Use GENERIC when type is variable
+-- Ã¢Å“â€œ Use GENERIC when type is variable
 obj.put_value (some_value, key).do_nothing
 
--- âœ— Don't use generic when type is known
+-- Ã¢Å“â€” Don't use generic when type is known
 -- Less clear and loses type information
 obj.put_value (al_value, key).do_nothing  -- When you know it's an object
 ```
@@ -146,16 +146,16 @@ add_value (v: SIMPLE_JSON_VALUE): SIMPLE_JSON_ARRAY
 ### Usage
 
 ```eiffel
--- âœ“ CHAINING - no .do_nothing needed
+-- Ã¢Å“â€œ CHAINING - no .do_nothing needed
 create obj.make
 obj.put_string ("Alice", "name")
    .put_integer (30, "age")
    .put_boolean (True, "active")
 
--- âœ“ SINGLE CALL - use .do_nothing
+-- Ã¢Å“â€œ SINGLE CALL - use .do_nothing
 obj.put_string ("Bob", "name").do_nothing
 
--- âœ— WRONG - unused result warning
+-- Ã¢Å“â€” WRONG - unused result warning
 obj.put_string ("Bob", "name")  -- Compiler warning
 ```
 
@@ -217,7 +217,7 @@ as_boolean: BOOLEAN
 ### Safe Usage Pattern
 
 ```eiffel
--- âœ“ CORRECT - check before conversion
+-- Ã¢Å“â€œ CORRECT - check before conversion
 if value.is_object then
     obj := value.as_object
     -- use obj safely
@@ -228,7 +228,7 @@ else
     -- handle other types
 end
 
--- âœ— WRONG - precondition violation if not object
+-- Ã¢Å“â€” WRONG - precondition violation if not object
 obj := value.as_object
 ```
 
@@ -246,12 +246,12 @@ obj := value.as_object
 ### Why Needed
 
 ```eiffel
--- âœ— WRONG - shallow copy shares references
+-- Ã¢Å“â€” WRONG - shallow copy shares references
 result.put_value (original.item (key), key)
 -- Both result and original share same nested object!
 -- Modifying the nested object affects both
 
--- âœ“ CORRECT - deep copy creates independent structure
+-- Ã¢Å“â€œ CORRECT - deep copy creates independent structure
 if al_value.is_object then
     result.put_object (deep_copy_object (al_value.as_object), key)
 elseif al_value.is_array then
@@ -465,6 +465,190 @@ end
 ```
 
 **Usage in tests:**
+
+### Constants Class Convention
+
+**CRITICAL:** All magic values must be replaced with named constants from the central constants class.
+
+**Location:** `src/constants/simple_json_constants.e`
+
+**Purpose:**
+- Eliminates magic numbers and strings
+- Provides semantic meaning to all literals
+- Centralizes project-wide constants
+- Makes code self-documenting
+
+**Structure:**
+```eiffel
+note
+	description: "[
+		Named constants for SIMPLE_JSON library.
+		Replaces all magic values with semantically meaningful names.
+	]"
+	
+class
+	SIMPLE_JSON_CONSTANTS
+
+feature -- Size limits
+	Max_reasonable_key_length: INTEGER = 1024
+		-- Maximum reasonable length for JSON keys (1KB)
+		-- Protects against DoS attacks and programming errors
+		-- Public because used in preconditions
+		
+	Max_reasonable_string_length: INTEGER = 10_000_000
+		-- Maximum reasonable string value (10MB)
+		-- Prevents memory exhaustion from malicious inputs
+		-- Public because used in preconditions
+
+feature -- Buffer sizes
+	Default_buffer_size: INTEGER = 8_192
+		-- Default buffer for JSON parsing (8KB)
+		-- Optimized for typical JSON document sizes
+		
+	Initial_array_capacity: INTEGER = 16
+		-- Initial capacity for JSON arrays
+		-- Minimizes reallocations for common array sizes
+
+feature -- JSON Schema keywords
+	Json_schema_type_object: STRING_32 = "object"
+		-- JSON Schema type keyword for objects
+		
+	Json_schema_type_array: STRING_32 = "array"
+		-- JSON Schema type keyword for arrays
+		
+	Json_schema_type_string: STRING_32 = "string"
+		-- JSON Schema type keyword for strings
+
+feature -- Format strings
+	Json_object_open: STRING_32 = "{"
+		-- Opening brace for JSON objects
+		
+	Json_object_close: STRING_32 = "}"
+		-- Closing brace for JSON objects
+		
+	Json_array_open: STRING_32 = "["
+		-- Opening bracket for JSON arrays
+		
+	Json_array_close: STRING_32 = "]"
+		-- Closing bracket for JSON arrays
+		
+	Json_colon_separator: STRING_32 = ": "
+		-- Colon separator between key and value
+		
+	Json_comma_separator: STRING_32 = ", "
+		-- Comma separator between elements
+
+feature -- Special values
+	First_index: INTEGER = 1
+		-- First valid index in Eiffel arrays (1-based)
+		
+	Substring_start_offset: INTEGER = 2
+		-- Offset for substring operations (skip first character)
+
+end
+```
+
+**Usage Pattern:**
+```eiffel
+class
+	SIMPLE_JSON_PRETTY_PRINTER
+
+inherit
+	SIMPLE_JSON_CONSTANTS  -- Inherit to access all constants
+
+feature
+	print_object (obj: SIMPLE_JSON_OBJECT)
+		local
+			l_result: STRING_32
+		do
+			create l_result.make (Default_buffer_size)  -- Use named constant
+			l_result.append (Json_object_open)          -- Use named constant
+			across obj.keys as ic loop
+				if ic.cursor_index > First_index then
+					l_result.append (Json_comma_separator)
+				end
+				-- All literals replaced with constants
+			end
+			l_result.append (Json_object_close)
+		end
+end
+```
+
+**What Counts as Magic:**
+- ✅ Replace: Numeric literals (except 0, 1 in obvious contexts)
+- ✅ Replace: String literals for types, keywords, formats
+- ✅ Replace: Buffer/capacity sizes
+- ✅ Replace: Array indices and offsets
+- ❌ Don't replace: Zero initialization, increment by one, boolean literals
+
+**Documentation Requirements:**
+Every constant MUST have:
+1. Descriptive name explaining what it represents
+2. Comment explaining why this specific value
+3. Usage context (where/how used)
+4. Visibility note if used in contracts
+
+**Before (with magic values):**
+```eiffel
+-- ❌ WRONG - Magic values everywhere
+if key.count > 1024 then
+	report_error ("Key too long")
+end
+create buffer.make (8192)
+if schema_type ~ "object" then
+	process_object
+end
+```
+
+**After (with named constants):**
+```eiffel
+-- ✅ CORRECT - Named constants
+if key.count > Max_reasonable_key_length then
+	report_error ("Key too long")
+end
+create buffer.make (Default_buffer_size)
+if schema_type ~ Json_schema_type_object then
+	process_object
+end
+```
+
+### Constant Visibility Convention
+
+**CRITICAL:** Constants used in preconditions MUST be public.
+
+```eiffel
+-- Ã¢Å“" CORRECT - Public constants for client contracts
+feature -- Constants
+    Max_reasonable_key_length: INTEGER = 1024
+        -- Public: Used in precondition for put_string and other features
+        -- Clients need to see this to avoid precondition violations
+
+    Max_reasonable_string_length: INTEGER = 10_000_000
+        -- Public: Used in precondition for put_string
+        -- Clients need to verify string length before calling
+
+feature -- Element change
+    put_string (a_value: STRING_32; a_key: STRING_32): SIMPLE_JSON_OBJECT
+        require
+            key_reasonable_length: a_key.count <= Max_reasonable_key_length
+            value_reasonable_length: a_value.count <= Max_reasonable_string_length
+            -- Both constants are public so clients can verify! âœ…
+```
+
+**Why this matters:**
+```eiffel
+-- Client code can check BEFORE calling
+if my_key.count <= obj.Max_reasonable_key_length then
+    obj.put_string (value, my_key)  -- Safe!
+else
+    -- Handle error appropriately
+    report_error ("Key exceeds maximum length")
+end
+```
+
+**Rule:** If a constant appears in `require` or `ensure`, make it `feature -- Constants` (public), NOT `feature {NONE} -- Constants` (private).
+
+
 ```eiffel
 class TEST_MY_FEATURE
 inherit
@@ -575,7 +759,7 @@ All have preconditions - check type first!
 
 ## Critical Anti-Patterns
 
-### âŒ NEVER Do These
+### Ã¢ÂÅ’ NEVER Do These
 
 ```eiffel
 -- 1. Don't assume method names
@@ -595,9 +779,17 @@ result.put_value (original.item (key), key)  -- WRONG - shared reference
 
 -- 5. Don't forget .do_nothing on single calls
 obj.put_value (v, k)         -- WRONG - unused result warning
+
+-- 6. Don't make contract constants private
+feature {NONE} -- Constants
+    Max_items: INTEGER = 100
+feature
+    add (item: ITEM)
+        require
+            not_full: count < Max_items  -- WRONG - client can't see Max_items!
 ```
 
-### âœ… ALWAYS Do These
+### Ã¢Å“â€¦ ALWAYS Do These
 
 ```eiffel
 -- 1. View source before calling
@@ -620,6 +812,10 @@ end
 
 -- 5. Add .do_nothing to single fluent calls
 obj.put_value (v, k).do_nothing
+
+-- 6. Make contract constants public
+feature -- Constants
+    Max_items: INTEGER = 100  -- Public because used in precondition
 ```
 
 ---
@@ -630,40 +826,40 @@ obj.put_value (v, k).do_nothing
 
 ```
 Adding to object with known type?
-â”œâ”€ String â†’ put_string (s, k)
-â”œâ”€ Integer â†’ put_integer (i, k)
-â”œâ”€ Object â†’ put_object (o, k)
-â”œâ”€ Array â†’ put_array (a, k)
-â””â”€ Variable type â†’ put_value (v, k)
+Ã¢â€Å“Ã¢â€â‚¬ String Ã¢â€ â€™ put_string (s, k)
+Ã¢â€Å“Ã¢â€â‚¬ Integer Ã¢â€ â€™ put_integer (i, k)
+Ã¢â€Å“Ã¢â€â‚¬ Object Ã¢â€ â€™ put_object (o, k)
+Ã¢â€Å“Ã¢â€â‚¬ Array Ã¢â€ â€™ put_array (a, k)
+Ã¢â€â€Ã¢â€â‚¬ Variable type Ã¢â€ â€™ put_value (v, k)
 
 Adding to array with known type?
-â”œâ”€ String â†’ add_string (s)
-â”œâ”€ Integer â†’ add_integer (i)
-â”œâ”€ Object â†’ add_object (o)
-â”œâ”€ Array â†’ add_array (a)
-â””â”€ Variable type â†’ add_value (v)
+Ã¢â€Å“Ã¢â€â‚¬ String Ã¢â€ â€™ add_string (s)
+Ã¢â€Å“Ã¢â€â‚¬ Integer Ã¢â€ â€™ add_integer (i)
+Ã¢â€Å“Ã¢â€â‚¬ Object Ã¢â€ â€™ add_object (o)
+Ã¢â€Å“Ã¢â€â‚¬ Array Ã¢â€ â€™ add_array (a)
+Ã¢â€â€Ã¢â€â‚¬ Variable type Ã¢â€ â€™ add_value (v)
 ```
 
 ### How to safely access?
 
 ```
 Getting value from object/array?
-â”œâ”€ Use item (key) or item (index)
-â”‚   â””â”€ Returns detachable
-â”‚       â””â”€ Use if attached pattern
-â”‚           â””â”€ Check type with is_X
-â”‚               â””â”€ Convert with as_X
+Ã¢â€Å“Ã¢â€â‚¬ Use item (key) or item (index)
+Ã¢â€â€š   Ã¢â€â€Ã¢â€â‚¬ Returns detachable
+Ã¢â€â€š       Ã¢â€â€Ã¢â€â‚¬ Use if attached pattern
+Ã¢â€â€š           Ã¢â€â€Ã¢â€â‚¬ Check type with is_X
+Ã¢â€â€š               Ã¢â€â€Ã¢â€â‚¬ Convert with as_X
 ```
 
 ### Do I need deep copy?
 
 ```
 Am I merging/transforming JSON?
-â”œâ”€ YES â†’ Does operation preserve original?
-â”‚   â”œâ”€ YES â†’ Need deep copy
-â”‚   â”‚   â””â”€ Recursively copy objects/arrays
-â”‚   â””â”€ NO â†’ Direct modification OK
-â””â”€ NO â†’ Regular reference OK
+Ã¢â€Å“Ã¢â€â‚¬ YES Ã¢â€ â€™ Does operation preserve original?
+Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬ YES Ã¢â€ â€™ Need deep copy
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€â€Ã¢â€â‚¬ Recursively copy objects/arrays
+Ã¢â€â€š   Ã¢â€â€Ã¢â€â‚¬ NO Ã¢â€ â€™ Direct modification OK
+Ã¢â€â€Ã¢â€â‚¬ NO Ã¢â€ â€™ Regular reference OK
 ```
 
 ---
@@ -707,10 +903,10 @@ end
 ```
 
 Follow these patterns and SIMPLE_JSON will be:
-- âœ“ Safe from API bugs
-- âœ“ Type-safe and void-safe
-- âœ“ Clear and maintainable
-- âœ“ Production quality
+- Ã¢Å“â€œ Safe from API bugs
+- Ã¢Å“â€œ Type-safe and void-safe
+- Ã¢Å“â€œ Clear and maintainable
+- Ã¢Å“â€œ Production quality
 
 ---
 
@@ -721,7 +917,7 @@ Follow these patterns and SIMPLE_JSON will be:
 **Context:** These are the ACTUAL method names verified by viewing source during JSON Merge Patch implementation.
 
 ```eiffel
--- ✅ VERIFIED - These methods exist
+-- âœ… VERIFIED - These methods exist
 SIMPLE_JSON_OBJECT:
   - has_key (k: STRING_32): BOOLEAN
   - item (k: STRING_32): detachable SIMPLE_JSON_VALUE
@@ -744,21 +940,21 @@ SIMPLE_JSON_VALUE:
 ```
 
 **What we learned the hard way:**
-- NO `has()` method → Use `has_key()`
-- NO `value()` method → Use `item()`
-- NO `put()` method → Use `put_value()` or `put_object()`
-- NO `add()` method → Use `add_value()` or `add_object()`
+- NO `has()` method â†’ Use `has_key()`
+- NO `value()` method â†’ Use `item()`
+- NO `put()` method â†’ Use `put_value()` or `put_object()`
+- NO `add()` method â†’ Use `add_value()` or `add_object()`
 
 ### Construction Patterns That Work
 
 **Creating wrapped values from underlying types:**
 
 ```eiffel
--- ✅ CORRECT - These constructors exist
+-- âœ… CORRECT - These constructors exist
 create Result.make_with_json_object (l_object.json_object)
 create Result.make_with_json_value (l_value.json_value)
 
--- ❌ WRONG - Don't assume these exist
+-- âŒ WRONG - Don't assume these exist
 create Result.make (l_object)  -- Doesn't work
 create Result.from_value (l_value)  -- Doesn't work
 ```
@@ -831,22 +1027,22 @@ Before implementing ANY feature using SIMPLE_JSON:
 ### Common Mistakes (NOW AVOIDED)
 
 ```eiffel
--- ❌ Assuming API names
+-- âŒ Assuming API names
 if obj.has ("key") then  -- Wrong: has_key not has
 
--- ❌ Wrong parameter order
+-- âŒ Wrong parameter order
 obj.put ("key", value)  -- Wrong: put_value (value, key)
 
--- ❌ Missing recursion
+-- âŒ Missing recursion
 result.put_value (orig.item (key), key)  -- Wrong: shallow copy
 
--- ❌ Wrong constructor
+-- âŒ Wrong constructor
 create Result.make (json_obj)  -- Wrong: make_with_json_object
 
--- ❌ Forgetting .do_nothing
+-- âŒ Forgetting .do_nothing
 obj.put_value (v, k)  -- Wrong: compiler warning
 
--- ✅ ALL CORRECT
+-- âœ… ALL CORRECT
 if obj.has_key (key) then
     obj.put_value (value, key).do_nothing
     if attached obj.item (key) as al_val then
@@ -934,13 +1130,13 @@ end
 
 **Using in across loops:**
 ```eiffel
--- âœ… CORRECT - Direct feature access
+-- Ã¢Å“â€¦ CORRECT - Direct feature access
 across stream as ic loop
     process (ic.value)  -- Not ic.item.value
     print (ic.index)    -- Not ic.item.index
 end
 
--- âŒ WRONG - Extra .item indirection
+-- Ã¢Å’ WRONG - Extra .item indirection
 across stream as ic loop
     process (ic.item.value)  -- Unnecessary .item
     print (ic.item.index)    -- Unnecessary .item
@@ -996,6 +1192,7 @@ note
     source: "[
         SIMPLE_JSON Project API Reference
         Updated with JSON Merge Patch lessons
+        Added constants class convention
     ]"
     last_updated: "November 15, 2025"
 end

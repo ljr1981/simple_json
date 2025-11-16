@@ -22,7 +22,7 @@ This document consolidates critical principles discovered through hands-on debug
 **Every feature must be EITHER a Command OR a Query - never both.**
 
 ```eiffel
--- âœ“ CORRECT - Query (builds new object, returns it)
+-- Ã¢Å“â€œ CORRECT - Query (builds new object, returns it)
 deep_copy_object (a_object: SIMPLE_JSON_OBJECT): SIMPLE_JSON_OBJECT
 	require
 		object_attached: a_object /= Void
@@ -38,7 +38,7 @@ deep_copy_object (a_object: SIMPLE_JSON_OBJECT): SIMPLE_JSON_OBJECT
 		original_unchanged: a_object ~ old a_object  -- Original not modified
 	end
 
--- âœ“ CORRECT - Command (modifies parameter, returns nothing)
+-- Ã¢Å“â€œ CORRECT - Command (modifies parameter, returns nothing)
 apply_patch_to_object (a_target: SIMPLE_JSON_OBJECT; a_patch: SIMPLE_JSON_OBJECT)
 	require
 		target_attached: a_target /= Void
@@ -50,7 +50,7 @@ apply_patch_to_object (a_target: SIMPLE_JSON_OBJECT; a_patch: SIMPLE_JSON_OBJECT
 		target_modified: a_target /~ old a_target  -- Target was modified
 	end
 
--- âœ— WRONG - Mixed (modifies parameter AND returns value)
+-- Ã¢Å“â€” WRONG - Mixed (modifies parameter AND returns value)
 bad_merge (a_target: SIMPLE_JSON_OBJECT; a_patch: SIMPLE_JSON_OBJECT): SIMPLE_JSON_OBJECT
 	do
 		-- Modifies a_target (command behavior)
@@ -99,19 +99,19 @@ merge_objects (a_target, a_patch: SIMPLE_JSON_VALUE): SIMPLE_JSON_VALUE
 ### CQS Rules
 
 **Queries:**
-- âœ“ Return a value
-- âœ“ Build new objects in local variables
-- âœ“ Never modify parameters
-- âœ“ Never modify attributes (except once-per-object pattern)
-- âœ“ Can call other queries
-- âœ— Must NOT call commands
+- Ã¢Å“â€œ Return a value
+- Ã¢Å“â€œ Build new objects in local variables
+- Ã¢Å“â€œ Never modify parameters
+- Ã¢Å“â€œ Never modify attributes (except once-per-object pattern)
+- Ã¢Å“â€œ Can call other queries
+- Ã¢Å“â€” Must NOT call commands
 
 **Commands:**
-- âœ“ Modify parameters or attributes
-- âœ“ Return nothing (procedure, not function)
-- âœ“ Can call other commands
-- âœ“ Can call queries to get values
-- âœ— Must NOT return values
+- Ã¢Å“â€œ Modify parameters or attributes
+- Ã¢Å“â€œ Return nothing (procedure, not function)
+- Ã¢Å“â€œ Can call other commands
+- Ã¢Å“â€œ Can call queries to get values
+- Ã¢Å“â€” Must NOT return values
 
 **Mixed Features (Rare, Justified):**
 - Builder pattern methods that modify AND return self for chaining
@@ -201,12 +201,12 @@ add_array (a: SIMPLE_JSON_ARRAY): SIMPLE_JSON_ARRAY
 
 **Why Needed:**
 ```eiffel
--- âœ— WRONG - Shallow copy
+-- Ã¢Å“â€” WRONG - Shallow copy
 l_result.put_value (l_target.item (key), key)
 -- Both l_result and l_target share the same object reference!
 -- Modifying the object affects both
 
--- âœ“ CORRECT - Deep copy
+-- Ã¢Å“â€œ CORRECT - Deep copy
 if al_value.is_object then
 	l_result.put_object (deep_copy_object (al_value.as_object), key)
 elseif al_value.is_array then
@@ -270,13 +270,13 @@ deep_copy_object (a_object: SIMPLE_JSON_OBJECT): SIMPLE_JSON_OBJECT
 **ALWAYS check type before calling type-specific methods:**
 
 ```eiffel
--- âœ“ CORRECT
+-- Ã¢Å“â€œ CORRECT
 if l_value.is_object then
 	l_obj := l_value.as_object  -- Precondition satisfied
 	-- use l_obj
 end
 
--- âœ— WRONG - Precondition violation if not object
+-- Ã¢Å“â€” WRONG - Precondition violation if not object
 l_obj := l_value.as_object
 ```
 
@@ -303,7 +303,7 @@ as_integer: INTEGER
 ### The Right Way
 
 ```eiffel
--- âœ“ CORRECT - if attached creates proven attached local
+-- Ã¢Å“â€œ CORRECT - if attached creates proven attached local
 if attached l_object.item (key) as al_value then
 	-- al_value is proven attached in this scope
 	use_value (al_value)
@@ -311,7 +311,7 @@ else
 	-- Handle void case
 end
 
--- âœ— WRONG - check doesn't create attached local
+-- Ã¢Å“â€” WRONG - check doesn't create attached local
 l_value := l_object.item (key)
 check l_value /= Void end
 use_value (l_value)  -- Still detachable! Compiler error
@@ -333,7 +333,7 @@ use_value (l_value)  -- Still detachable! Compiler error
 **When redefining inherited features with contracts, use special syntax:**
 
 ```eiffel
--- ✓ CORRECT - Preconditions use "require else"
+-- âœ“ CORRECT - Preconditions use "require else"
 item: ELEMENT
 	require else  -- Adds alternatives to parent's precondition
 		my_condition: additional_check
@@ -343,7 +343,7 @@ item: ELEMENT
 		my_guarantee: Result.count > 0
 	end
 
--- ✗ WRONG - Plain require/ensure REPLACES parent's contract
+-- âœ— WRONG - Plain require/ensure REPLACES parent's contract
 item: ELEMENT
 	require  -- REPLACES parent's precondition!
 		my_condition: additional_check
@@ -411,13 +411,13 @@ item: MY_ELEMENT
 
 ### When to Use
 
-✅ **ALWAYS use when implementing/redefining:**
+âœ… **ALWAYS use when implementing/redefining:**
 - ITERATION_CURSOR features
 - ITERABLE features
 - Any deferred feature with contracts
 - Any feature you're redefining that has contracts
 
-✗ **NEVER use plain require/ensure:**
+âœ— **NEVER use plain require/ensure:**
 - On redefined features (breaks LSP)
 - When parent has contracts (loses parent's guarantees)
 
@@ -436,7 +436,7 @@ feature
 				parse_array
 			end
 			create Result.make (Current)
-		ensure then  -- ✓ CORRECT! Adds to parent's postcondition
+		ensure then  -- âœ“ CORRECT! Adds to parent's postcondition
 			cursor_attached: Result /= Void
 		end
 end
@@ -448,7 +448,7 @@ inherit
 
 feature
 	item: SIMPLE_JSON_STREAM_ELEMENT
-		require else  -- ✓ CORRECT! Adds to parent's precondition
+		require else  -- âœ“ CORRECT! Adds to parent's precondition
 			not_after: not after
 		do
 			create Result.make (stream.elements.i_th (current_index), current_index)
@@ -465,13 +465,13 @@ end
 **In `across` loops, cursor provides DIRECT access to element features:**
 
 ```eiffel
--- ✓ CORRECT - Direct access
+-- âœ“ CORRECT - Direct access
 across stream as ic loop
 	process (ic.value)    -- Direct feature access
 	print (ic.index)      -- Direct feature access
 end
 
--- ✗ WRONG - Extra .item not needed
+-- âœ— WRONG - Extra .item not needed
 across stream as ic loop
 	process (ic.item.value)    -- WRONG! Extra .item
 	print (ic.item.index)      -- WRONG! Extra .item
@@ -512,8 +512,8 @@ end
 
 -- In across loop:
 across collection as ic loop
-	ic.value  -- ✓ Direct access
-	ic.name   -- ✓ Direct access
+	ic.value  -- âœ“ Direct access
+	ic.name   -- âœ“ Direct access
 end
 ```
 
@@ -521,7 +521,7 @@ end
 ```eiffel
 -- Collection of INTEGER
 across numbers as ic loop
-	print (ic.item)  -- ✓ Correct - ic.item is the INTEGER
+	print (ic.item)  -- âœ“ Correct - ic.item is the INTEGER
 end
 ```
 
@@ -543,13 +543,13 @@ test_stream_single_element
 		create l_stream.make_from_string ("[42]")
 		
 		across l_stream as ic loop
-			l_first_value := ic.value  -- ✓ Direct access to element's value
+			l_first_value := ic.value  -- âœ“ Direct access to element's value
 		end
 	end
 
 -- WRONG usage:
 across l_stream as ic loop
-	l_first_value := ic.item.value  -- ✗ Extra .item not needed
+	l_first_value := ic.item.value  -- âœ— Extra .item not needed
 end
 ```
 
@@ -557,11 +557,11 @@ end
 
 ```
 What is the cursor's item type?
-├─ Complex type with features (MY_ELEMENT)
-│  └─ Use: ic.feature_name (direct access)
-│
-└─ Simple type (INTEGER, STRING)
-   └─ Use: ic.item (the value itself)
+â”œâ”€ Complex type with features (MY_ELEMENT)
+â”‚  â””â”€ Use: ic.feature_name (direct access)
+â”‚
+â””â”€ Simple type (INTEGER, STRING)
+   â””â”€ Use: ic.item (the value itself)
 ```
 
 ---
@@ -591,6 +591,456 @@ l_obj.put_value (v1, k1)
 
 ---
 
+---
+
+## PRINCIPLE 9: Constants in Contracts Must Be Public
+
+### The Iron Law
+
+**Constants referenced in preconditions or postconditions MUST be publicly accessible.**
+
+### Why This Matters
+
+Design by Contract assigns clear responsibilities:
+- **Preconditions** = Client's obligation
+- **Postconditions** = Client's right to verify
+
+If clients can't see the constants used in contracts, they can't verify they're meeting their obligations!
+
+### The Bug Pattern
+
+```eiffel
+-- Ã¢Å“â€” WRONG - Client can't verify precondition!
+feature {NONE} -- Constants
+	Max_key_length: INTEGER = 1024
+
+feature -- Element change
+	put_string (a_value: STRING_32; a_key: STRING_32)
+		require
+			key_reasonable: a_key.count <= Max_key_length
+			-- ERROR! Client can't see Max_key_length to verify!
+		do
+			...
+		end
+```
+
+**Problem:** Client code cannot check if `a_key.count <= Max_key_length` before calling because `Max_key_length` is hidden!
+
+### The Correct Pattern
+
+```eiffel
+-- Ã¢Å“" CORRECT - Client CAN verify precondition
+feature -- Constants
+	Max_key_length: INTEGER = 1024
+		-- Public because used in client contracts
+
+feature -- Element change
+	put_string (a_value: STRING_32; a_key: STRING_32)
+		require
+			key_reasonable: a_key.count <= Max_key_length
+			-- Client can verify this! âœ…
+		do
+			...
+		end
+```
+
+**Now clients can write:**
+```eiffel
+-- Client code can check BEFORE calling
+if my_key.count <= obj.Max_key_length then
+	obj.put_string (value, my_key)  -- Safe!
+else
+	handle_error ("Key too long")
+end
+```
+
+### General Visibility Rules for Constants
+
+| Constant Used In | Required Visibility | Reason |
+|-----------------|-------------------|---------|
+| Preconditions | **PUBLIC** (`feature -- Constants`) | Client must verify |
+| Postconditions | **PUBLIC** (`feature -- Constants`) | Client must verify |
+| Class invariants | Can be private | Only class checks |
+| Implementation only | **PRIVATE** (`feature {NONE}`) | Hide internals |
+
+### Real Example
+
+```eiffel
+class SIMPLE_JSON_OBJECT
+
+feature -- Constants
+	-- Public because used in preconditions (client's contract)
+	Max_reasonable_key_length: INTEGER = 1024
+		-- Maximum reasonable length for JSON keys
+
+	Max_reasonable_string_length: INTEGER = 10_000_000
+		-- Maximum reasonable string value (10MB)
+
+feature -- Element change
+	put_string (a_value: STRING_32; a_key: STRING_32): SIMPLE_JSON_OBJECT
+		require
+			key_reasonable_length: a_key.count <= Max_reasonable_key_length
+			value_reasonable_length: a_value.count <= Max_reasonable_string_length
+			-- Both constants are public, so client can verify! âœ…
+
+feature {NONE} -- Constants
+	-- Private because only used internally
+	Internal_buffer_size: INTEGER = 4096
+		-- Internal implementation detail
+
+feature {NONE} -- Implementation
+	allocate_buffer
+		local
+			l_buffer: STRING
+		do
+			create l_buffer.make (Internal_buffer_size)
+			-- OK to use private constant in implementation
+		end
+end
+```
+
+### Why This Principle Matters
+
+**Theoretical:** DbC is about explicit contracts between client and supplier. Hidden contract terms violate the principle of transparency.
+
+**Practical:** If constants in preconditions are private, clients get precondition violations with no way to prevent them!
+
+### Decision Tree
+
+```
+Is the constant referenced in a precondition or postcondition?
+â”œâ”€ YES â†’ Make it PUBLIC (feature -- Constants)
+â”‚        Reason: Client needs to see it
+â”‚
+â””â”€ NO â†’ Is it referenced in an invariant?
+    â”œâ”€ YES â†’ Can be PRIVATE (feature {NONE} -- Constants)
+    â”‚        Reason: Only class checks invariants
+    â”‚
+    â””â”€ NO â†’ Make it PRIVATE (feature {NONE} -- Constants)
+             Reason: Hide implementation details
+```
+
+### Common Mistake
+
+```eiffel
+-- Ã¢Å“â€” WRONG - Trying to hide limits from clients
+feature {NONE} -- Constants
+	Max_items: INTEGER = 1000
+
+feature -- Element change
+	add_item (item: ITEM)
+		require
+			not_full: count < Max_items
+			-- Client can't see Max_items!
+			-- They get violations with no way to prevent them!
+```
+
+**Fix:** Make `Max_items` public so clients can check capacity before calling.
+
+### Best Practice
+
+When designing contracts:
+1. Write the precondition/postcondition first
+2. Note what constants it references
+3. Make those constants public immediately
+4. Add comment explaining why it's public
+
+```eiffel
+feature -- Constants
+	Max_connections: INTEGER = 100
+		-- Public: Used in precondition for connect()
+		-- Clients need to know the limit to avoid violations
+
+feature -- Operations
+	connect (address: STRING)
+		require
+			not_full: active_connections < Max_connections
+```
+
+---
+
+## PRINCIPLE 10: No Magic Values - Use Named Constants
+
+### The Iron Law
+
+**Every literal value in code must have semantic meaning through a named constant.**
+
+### Why This Matters
+
+**The Problem:**
+```eiffel
+-- ❌ WRONG - What does 1024 mean? Why that number?
+if key.count > 1024 then
+	report_error ("Key too long")
+end
+
+-- ❌ WRONG - Magic strings with no context
+if json_type ~ "object" then
+	process_object
+end
+
+-- ❌ WRONG - Unexplained numeric values
+create buffer.make (8192)
+```
+
+**Problems with magic values:**
+1. **No semantic meaning** - Reader doesn't know why that value
+2. **Hard to maintain** - Changing value requires finding all occurrences
+3. **Error-prone** - Similar values might mean different things
+4. **Not searchable** - Can't find all uses of a concept
+
+**The Solution:**
+```eiffel
+-- ✅ CORRECT - Named constant explains meaning
+feature -- Constants
+	Max_reasonable_key_length: INTEGER = 1024
+		-- Maximum reasonable length for JSON keys
+		-- Protects against DoS attacks with enormous keys
+		-- Based on practical JSON usage patterns
+
+	Json_object_type: STRING_32 = "object"
+		-- JSON Schema type keyword for object types
+		-- Defined in JSON Schema Draft 7 specification
+
+	Default_buffer_size: INTEGER = 8_192
+		-- Default buffer size for JSON parsing
+		-- 8KB provides good balance of memory vs performance
+		-- Handles most JSON documents in single allocation
+
+feature -- Implementation
+	validate_key (key: STRING_32)
+		do
+			if key.count > Max_reasonable_key_length then
+				report_error ("Key exceeds maximum length")
+			end
+		end
+```
+
+### Where Constants Belong
+
+**For SIMPLE_JSON project:**
+```
+src/
+	constants/
+		simple_json_constants.e  -- Central constants class
+	core/
+		simple_json.e            -- Inherits constants
+	utilities/
+		simple_json_pretty_printer.e  -- Inherits constants
+```
+
+**Constants Class Pattern:**
+```eiffel
+note
+	description: "[
+		Named constants for SIMPLE_JSON library.
+		Replaces magic values with semantically meaningful names.
+	]"
+	
+class
+	SIMPLE_JSON_CONSTANTS
+
+feature -- Size limits
+	Max_reasonable_key_length: INTEGER = 1024
+		-- Maximum reasonable length for JSON keys (1KB)
+		-- Protects against DoS attacks and programming errors
+		
+	Max_reasonable_string_length: INTEGER = 10_000_000
+		-- Maximum reasonable string value (10MB)
+		-- Prevents memory exhaustion from malicious inputs
+
+feature -- Buffer sizes
+	Default_buffer_size: INTEGER = 8_192
+		-- Default buffer for JSON parsing (8KB)
+		-- Optimized for typical JSON document sizes
+		
+	Initial_array_capacity: INTEGER = 16
+		-- Initial capacity for JSON arrays
+		-- Minimizes reallocations for common array sizes
+
+feature -- JSON keywords
+	Json_object_type: STRING_32 = "object"
+		-- JSON Schema type keyword for objects
+		
+	Json_array_type: STRING_32 = "array"
+		-- JSON Schema type keyword for arrays
+
+feature -- Format strings  
+	Json_object_open: STRING_32 = "{"
+		-- Opening brace for JSON objects
+		
+	Json_object_close: STRING_32 = "}"
+		-- Closing brace for JSON objects
+
+feature -- Special values
+	First_index: INTEGER = 1
+		-- First valid index in Eiffel arrays (1-based)
+		
+	Substring_start_offset: INTEGER = 2
+		-- Offset for substring operations (skip first character)
+
+end
+```
+
+### Using Constants in Code
+
+**Inherit from constants class:**
+```eiffel
+class
+	SIMPLE_JSON_PRETTY_PRINTER
+
+inherit
+	SIMPLE_JSON_CONSTANTS  -- Get access to all constants
+
+feature
+	print_object (obj: SIMPLE_JSON_OBJECT)
+		local
+			l_result: STRING_32
+		do
+			create l_result.make (Default_buffer_size)
+			l_result.append (Json_object_open)
+			-- Use named constants throughout
+			l_result.append (Json_object_close)
+		end
+end
+```
+
+### What Qualifies as a Magic Value
+
+**ALWAYS replace these with named constants:**
+
+✅ **Numeric literals** (except 0 and 1 in obvious contexts):
+```eiffel
+-- ❌ Magic number
+if count > 100 then
+
+-- ✅ Named constant
+if count > Max_collection_size then
+```
+
+✅ **String literals** used for types, keywords, or formats:
+```eiffel
+-- ❌ Magic string
+if type ~ "string" then
+
+-- ✅ Named constant
+if type ~ Json_string_type then
+```
+
+✅ **Buffer/capacity sizes:**
+```eiffel
+-- ❌ Magic size
+create buffer.make (256)
+
+-- ✅ Named constant
+create buffer.make (Default_buffer_size)
+```
+
+✅ **Array indices and offsets:**
+```eiffel
+-- ❌ Magic offset
+substring := text.substring (2, n)
+
+-- ✅ Named constant
+substring := text.substring (Substring_start_offset, n)
+```
+
+**EXCEPTIONS - Don't need constants for:**
+- Zero in initialization: `count := 0`
+- One in increment: `i := i + 1`
+- Boolean literals: `True`, `False`
+- Empty string checks: `s.is_empty`
+
+### Documentation Requirements
+
+**Every constant MUST have:**
+
+1. **Descriptive name** - Explains what it represents
+2. **Comment explaining value** - Why this specific number/string
+3. **Usage context** - How/where it's used
+4. **Rationale** - Why this value was chosen
+
+```eiffel
+Max_reasonable_key_length: INTEGER = 1024
+	-- Maximum reasonable length for JSON keys (1KB)
+	-- Protects against DoS attacks with enormous keys
+	-- Based on practical JSON usage patterns
+	-- Used in preconditions for all key-accepting features
+```
+
+### Benefits
+
+**Code becomes:**
+1. **Self-documenting** - Names explain meaning
+2. **Maintainable** - Change in one place
+3. **Consistent** - Same value used everywhere
+4. **Searchable** - Find all uses of concept
+5. **Testable** - Can verify limits systematically
+
+### Real Example from SIMPLE_JSON
+
+**Before (Magic Values):**
+```eiffel
+class SIMPLE_JSON_PRETTY_PRINTER
+
+feature
+	print_object (obj: SIMPLE_JSON_OBJECT)
+		local
+			l_result: STRING_32
+		do
+			create l_result.make (1024)
+			l_result.append ("{")
+			across obj.keys as ic loop
+				if ic.cursor_index > 1 then
+					l_result.append (", ")
+				end
+				l_result.append (%"")
+				l_result.append (ic.item)
+				l_result.append (%": ")
+			end
+			l_result.append ("}")
+		end
+end
+```
+
+**After (Named Constants):**
+```eiffel
+class SIMPLE_JSON_PRETTY_PRINTER
+
+inherit
+	SIMPLE_JSON_CONSTANTS
+
+feature
+	print_object (obj: SIMPLE_JSON_OBJECT)
+		local
+			l_result: STRING_32
+		do
+			create l_result.make (Default_buffer_size)
+			l_result.append (Json_object_open)
+			across obj.keys as ic loop
+				if ic.cursor_index > First_index then
+					l_result.append (Json_comma_separator)
+				end
+				l_result.append (Json_quote)
+				l_result.append (ic.item)
+				l_result.append (Json_quote)
+				l_result.append (Json_colon_separator)
+			end
+			l_result.append (Json_object_close)
+		end
+end
+```
+
+**Improvements:**
+- ✅ Every literal replaced with named constant
+- ✅ Constants explain their purpose
+- ✅ Easy to change formatting globally
+- ✅ Self-documenting code
+
+---
+
+
+
 ## MANDATORY PRE-IMPLEMENTATION CHECKLIST
 
 Before writing ANY code:
@@ -609,6 +1059,7 @@ Before writing ANY code:
 - [ ] Ensure commands don't return values (except fluent)
 - [ ] Plan deep copy for structural operations
 - [ ] Identify preconditions to satisfy
+- [ ] Make constants in preconditions PUBLIC (not {NONE})
 - [ ] Plan attachment patterns for detachable
 
 ### Implementation Verification
@@ -618,12 +1069,15 @@ Before writing ANY code:
 - [ ] Implement deep copy for nested structures
 - [ ] Add .do_nothing to fluent API calls
 - [ ] Separate commands and queries clearly
+- [ ] Replace all magic values with named constants
+- [ ] Add new constants to src/constants/simple_json_constants.e
+- [ ] Document each constant with purpose and rationale
 
 ---
 
 ## ANTI-PATTERNS TO AVOID
 
-### âŒ NEVER Do These
+### Ã¢ÂÅ’ NEVER Do These
 
 1. **Queries that modify parameters**
    ```eiffel
@@ -660,7 +1114,15 @@ Before writing ANY code:
    result.put_value (original.item (key), key)  -- Shared reference!
    ```
 
-### âœ… ALWAYS Do These
+6. **Use magic values instead of named constants**
+   ```eiffel
+   -- WRONG
+   if key.count > 1024 then  -- What is 1024?
+   create buffer.make (8192)  -- Why 8192?
+   if type ~ "object" then    -- Magic string
+   ```
+
+### Ã¢Å“â€¦ ALWAYS Do These
 
 1. **Separate commands and queries**
    ```eiffel
@@ -695,6 +1157,13 @@ Before writing ANY code:
    end
    ```
 
+6. **Use named constants for all literals**
+   ```eiffel
+   if key.count > Max_reasonable_key_length then
+   create buffer.make (Default_buffer_size)
+   if type ~ Json_object_type then
+   ```
+
 ---
 
 ## DECISION TREE
@@ -703,54 +1172,54 @@ Before writing ANY code:
 
 ```
 Am I calling a library method?
-â”œâ”€ YES â†’ Have I viewed source for this class in this session?
-â”‚   â”œâ”€ YES â†’ Did the API change since I last viewed?
-â”‚   â”‚   â”œâ”€ YES â†’ View source again
-â”‚   â”‚   â””â”€ NO â†’ Proceed with verified API
-â”‚   â””â”€ NO â†’ DEFINITELY view source
-â”‚
-â”œâ”€ Am I 100% certain of the method name?
-â”‚   â””â”€ NO â†’ View source (don't guess)
-â”‚
-â””â”€ Do I know all preconditions?
-    â””â”€ NO â†’ View source
+Ã¢â€Å“Ã¢â€â‚¬ YES Ã¢â€ â€™ Have I viewed source for this class in this session?
+Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬ YES Ã¢â€ â€™ Did the API change since I last viewed?
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬ YES Ã¢â€ â€™ View source again
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€â€Ã¢â€â‚¬ NO Ã¢â€ â€™ Proceed with verified API
+Ã¢â€â€š   Ã¢â€â€Ã¢â€â‚¬ NO Ã¢â€ â€™ DEFINITELY view source
+Ã¢â€â€š
+Ã¢â€Å“Ã¢â€â‚¬ Am I 100% certain of the method name?
+Ã¢â€â€š   Ã¢â€â€Ã¢â€â‚¬ NO Ã¢â€ â€™ View source (don't guess)
+Ã¢â€â€š
+Ã¢â€â€Ã¢â€â‚¬ Do I know all preconditions?
+    Ã¢â€â€Ã¢â€â‚¬ NO Ã¢â€ â€™ View source
 ```
 
 ### Is this a command or query?
 
 ```
 Does it return a value?
-â”œâ”€ YES â†’ Does it modify parameters/attributes?
-â”‚   â”œâ”€ YES â†’ Design problem! Split into query + command
-â”‚   â””â”€ NO â†’ It's a QUERY
-â”‚       â””â”€ Build results in LOCAL variables only
-â”‚
-â””â”€ NO â†’ It's a COMMAND
-    â””â”€ Modify parameters/attributes directly
+Ã¢â€Å“Ã¢â€â‚¬ YES Ã¢â€ â€™ Does it modify parameters/attributes?
+Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬ YES Ã¢â€ â€™ Design problem! Split into query + command
+Ã¢â€â€š   Ã¢â€â€Ã¢â€â‚¬ NO Ã¢â€ â€™ It's a QUERY
+Ã¢â€â€š       Ã¢â€â€Ã¢â€â‚¬ Build results in LOCAL variables only
+Ã¢â€â€š
+Ã¢â€â€Ã¢â€â‚¬ NO Ã¢â€ â€™ It's a COMMAND
+    Ã¢â€â€Ã¢â€â‚¬ Modify parameters/attributes directly
 ```
 
 ### Do I need deep copy?
 
 ```
 Am I transforming/merging JSON?
-â”œâ”€ YES â†’ Does operation preserve original?
-â”‚   â”œâ”€ YES â†’ Need DEEP COPY
-â”‚   â”‚   â””â”€ Recursively copy objects/arrays
-â”‚   â””â”€ NO â†’ Direct modification OK
-â”‚
-â””â”€ NO â†’ Regular copy/reference OK
+Ã¢â€Å“Ã¢â€â‚¬ YES Ã¢â€ â€™ Does operation preserve original?
+Ã¢â€â€š   Ã¢â€Å“Ã¢â€â‚¬ YES Ã¢â€ â€™ Need DEEP COPY
+Ã¢â€â€š   Ã¢â€â€š   Ã¢â€â€Ã¢â€â‚¬ Recursively copy objects/arrays
+Ã¢â€â€š   Ã¢â€â€Ã¢â€â‚¬ NO Ã¢â€ â€™ Direct modification OK
+Ã¢â€â€š
+Ã¢â€â€Ã¢â€â‚¬ NO Ã¢â€ â€™ Regular copy/reference OK
 ```
 
 ### Do I need contract inheritance keywords?
 
 ```
 Am I redefining an inherited feature?
-YES → Does parent have contracts?
-    YES → MUST use "require else" and "ensure then"
+YES â†’ Does parent have contracts?
+    YES â†’ MUST use "require else" and "ensure then"
         - Precondition: require else (adds alternatives)
         - Postcondition: ensure then (adds guarantees)
-    NO → Use plain "require" and "ensure"
-NO → Use plain "require" and "ensure"
+    NO â†’ Use plain "require" and "ensure"
+NO â†’ Use plain "require" and "ensure"
 
 Common cases requiring contract inheritance:
 - Implementing ITERATION_CURSOR.item
@@ -860,13 +1329,13 @@ merge_objects (a_target, a_patch: SIMPLE_JSON_VALUE): SIMPLE_JSON_VALUE
 
 **You're following these principles when:**
 
-âœ… All features compile on first try (no VEEN errors)  
-âœ… No precondition violations in tests  
-âœ… No attachment errors (VUAR, VUTA)  
-âœ… Correct method names throughout  
-âœ… Clear separation of commands and queries  
-âœ… Tests pass on first run after implementation  
-âœ… Code is easy to understand and maintain  
+Ã¢Å“â€¦ All features compile on first try (no VEEN errors)  
+Ã¢Å“â€¦ No precondition violations in tests  
+Ã¢Å“â€¦ No attachment errors (VUAR, VUTA)  
+Ã¢Å“â€¦ Correct method names throughout  
+Ã¢Å“â€¦ Clear separation of commands and queries  
+Ã¢Å“â€¦ Tests pass on first run after implementation  
+Ã¢Å“â€¦ Code is easy to understand and maintain  
 
 **Target:** 100% of API calls correct on first compile by following verification process.
 
@@ -885,9 +1354,9 @@ merge_objects (a_target, a_patch: SIMPLE_JSON_VALUE): SIMPLE_JSON_VALUE
 ### Why These Matter
 
 From real experience:
-- Violating CQS â†’ bugs in merge_objects
-- Assuming APIs â†’ 19+ compiler errors
-- Following principles â†’ bugs disappeared
+- Violating CQS Ã¢â€ â€™ bugs in merge_objects
+- Assuming APIs Ã¢â€ â€™ 19+ compiler errors
+- Following principles Ã¢â€ â€™ bugs disappeared
 
 ### The ROI
 
@@ -900,10 +1369,10 @@ From real experience:
 **These aren't suggestions - they're requirements for correct Eiffel code.**
 
 Follow them, and your code will be:
-- âœ“ Correct from the start
-- âœ“ Easy to understand
-- âœ“ Easy to maintain
-- âœ“ Free from whole categories of bugs
+- Ã¢Å“â€œ Correct from the start
+- Ã¢Å“â€œ Easy to understand
+- Ã¢Å“â€œ Easy to maintain
+- Ã¢Å“â€œ Free from whole categories of bugs
 
 **Violate them, and you'll spend time debugging instead of building.**
 
@@ -921,7 +1390,7 @@ Follow them, and your code will be:
 - **The Code:** `merge_objects` tried to build AND modify in one feature
 - **The Symptom:** Confused logic, unclear responsibilities
 - **The Fix:** Split into `deep_copy_object` (query) + `apply_patch_to_object` (command)
-- **The Lesson:** CQS isn't style—it's correctness
+- **The Lesson:** CQS isn't styleâ€”it's correctness
 
 **Bug 2: API Name Assumption (CAUGHT)**
 - **The Code:** Used `has()` instead of actual `has_key()`
@@ -943,7 +1412,7 @@ Follow them, and your code will be:
 ### New Principle: Recursive Data Requires Recursive Operations
 
 ```eiffel
--- ❌ WRONG - Flat operation on recursive structure
+-- âŒ WRONG - Flat operation on recursive structure
 merge_objects (a_target, a_patch: SIMPLE_JSON_VALUE): SIMPLE_JSON_VALUE
 	do
 		across a_patch.keys as ic loop
@@ -952,7 +1421,7 @@ merge_objects (a_target, a_patch: SIMPLE_JSON_VALUE): SIMPLE_JSON_VALUE
 		end
 	end
 
--- ✅ CORRECT - Recursive operation on recursive structure
+-- âœ… CORRECT - Recursive operation on recursive structure
 merge_objects (a_target, a_patch: SIMPLE_JSON_VALUE): SIMPLE_JSON_VALUE
 	do
 		l_result := deep_copy_object (a_target.as_object)
@@ -990,16 +1459,16 @@ merge_objects (a_target, a_patch: SIMPLE_JSON_VALUE): SIMPLE_JSON_VALUE
 ### Validation: The Principles Work
 
 **What happened when we followed the principles:**
-- ✅ CQS separation → bug disappeared
-- ✅ Viewed source → correct API calls
-- ✅ Deep copy → originals preserved
-- ✅ Type checks → no precondition violations
-- ✅ Read spec first → correct semantics
+- âœ… CQS separation â†’ bug disappeared
+- âœ… Viewed source â†’ correct API calls
+- âœ… Deep copy â†’ originals preserved
+- âœ… Type checks â†’ no precondition violations
+- âœ… Read spec first â†’ correct semantics
 
 **What happened when we violated them:**
-- ❌ Assumed API → 20 minutes debugging
-- ❌ Mixed query/command → confused logic
-- ❌ Forgot recursion → 30 minutes rework
+- âŒ Assumed API â†’ 20 minutes debugging
+- âŒ Mixed query/command â†’ confused logic
+- âŒ Forgot recursion â†’ 30 minutes rework
 
 **ROI:** Following principles = 50 minutes saved per feature
 
@@ -1007,17 +1476,17 @@ merge_objects (a_target, a_patch: SIMPLE_JSON_VALUE): SIMPLE_JSON_VALUE
 
 ```
 Is the data structure recursive (trees, graphs)?
-├─ YES → Am I traversing it?
-│   ├─ YES → Need recursion
-│   └─ NO → Flat operations OK
-│
-├─ Do I have type checks for nested types?
-│   ├─ YES (is_object, is_array checks) → Need recursion
-│   └─ NO → Flat operations OK
-│
-└─ Does the spec say "recursive"?
-    ├─ YES → Need recursion
-    └─ NO → Read spec more carefully
+â”œâ”€ YES â†’ Am I traversing it?
+â”‚   â”œâ”€ YES â†’ Need recursion
+â”‚   â””â”€ NO â†’ Flat operations OK
+â”‚
+â”œâ”€ Do I have type checks for nested types?
+â”‚   â”œâ”€ YES (is_object, is_array checks) â†’ Need recursion
+â”‚   â””â”€ NO â†’ Flat operations OK
+â”‚
+â””â”€ Does the spec say "recursive"?
+    â”œâ”€ YES â†’ Need recursion
+    â””â”€ NO â†’ Read spec more carefully
 ```
 
 **Indicator:** If you write `is_object` or `is_array` checks, you probably need recursive calls.
@@ -1113,13 +1582,13 @@ Added **Principle 6: Contract Inheritance** and **Principle 7: Across Loop Curso
 ### Validation: More Principles That Work
 
 **What happened when we followed contract inheritance rules:**
-- ✅ `require else` / `ensure then` → compilation successful
-- ✅ Direct cursor access (`ic.value`) → compilation successful
-- ✅ All 11 streaming parser tests passed
+- âœ… `require else` / `ensure then` â†’ compilation successful
+- âœ… Direct cursor access (`ic.value`) â†’ compilation successful
+- âœ… All 11 streaming parser tests passed
 
 **What happened when we violated them:**
-- ❌ Plain `require` / `ensure` → compilation errors
-- ❌ Extra `.item` indirection → compilation errors
+- âŒ Plain `require` / `ensure` â†’ compilation errors
+- âŒ Extra `.item` indirection â†’ compilation errors
 
 **ROI:** Understanding these patterns = 0 debugging time, immediate success
 
@@ -1128,7 +1597,7 @@ Added **Principle 6: Contract Inheritance** and **Principle 7: Across Loop Curso
 **End of Critical Principles Guide**
 
 **Last Updated:** November 15, 2025  
-**Validated By:** JSON Merge Patch implementation
+**Validated By:** JSON Merge Patch implementation, Magic Values Refactoring
 
 note
 	copyright: "2024, Larry Rix"

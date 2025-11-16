@@ -155,6 +155,9 @@ feature -- Element change (Fluent API)
 
 	add_string (a_value: STRING_32): SIMPLE_JSON_ARRAY
 			-- Add string value (fluent)
+		require
+			value_not_void: a_value /= Void
+			value_reasonable_length: a_value.count <= Max_reasonable_string_length
 		local
 			l_json_string: JSON_STRING
 		do
@@ -237,6 +240,15 @@ feature -- Removal
 		do
 			json_value.wipe_out
 		end
+feature -- Constants
+
+	Max_reasonable_string_length: INTEGER = 10_000_000
+			-- Maximum reasonable string value (10MB, defense against DoS)
+			-- Public: used in preconditions for string operations
+
+	Max_reasonable_array_size: INTEGER = 1_000_000
+			-- Maximum reasonable array size (defense against memory exhaustion)
+			-- Public: used in class invariants
 
 invariant
 	-- Core type stability

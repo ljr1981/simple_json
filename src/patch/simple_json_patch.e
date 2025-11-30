@@ -183,7 +183,7 @@ feature -- Operations
 					check failure_has_error: l_result.has_error end
 					-- Operation failed - abort patch
 					create Result.make_failure (
-						"Operation " + l_op_number.out + " (" + ic.op + ") failed: " + l_result.error_message
+						"Operation " + l_op_number.out + " (" + ic.op.to_string_8 + ") failed: " + l_result.error_message.to_string_8
 					)
 					check result_is_failure: Result.is_failure end
 				end

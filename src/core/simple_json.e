@@ -84,7 +84,7 @@ feature -- Parsing
 				Result := parse (l_content)
 			else
 				-- File access error
-				add_error (create {SIMPLE_JSON_ERROR}.make ("Cannot read file: " + a_file_path))
+				add_error (create {SIMPLE_JSON_ERROR}.make ("Cannot read file: " + a_file_path.to_string_8))
 			end
 		end
 
@@ -589,7 +589,7 @@ feature {NONE} -- Implementation
 
 					-- Add bracket content as segment (either index or wildcard)
 					if not l_segment.is_empty then
-						l_segments.force ("[" + l_segment.twin + "]")
+						l_segments.force ("[" + l_segment.twin.to_string_8 + "]")
 						l_segment.wipe_out
 					end
 				else

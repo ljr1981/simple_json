@@ -46,7 +46,6 @@ feature -- Parsing
 		local
 			l_path: STRING_32
 			l_parts: LIST [STRING_32]
-			i: INTEGER
 		do
 			segments.wipe_out
 			Result := True

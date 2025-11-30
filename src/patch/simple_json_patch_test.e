@@ -79,10 +79,10 @@ feature -- Operations
 						-- Test passed - return unchanged document
 						create Result.make_success (a_document)
 					else
-						create Result.make_failure ("Test failed: value at '" + path + "' does not match expected value")
+						create Result.make_failure ("Test failed: value at '" + path.to_string_8 + "' does not match expected value")
 					end
 				else
-					create Result.make_failure ("Test failed: no value found at path: " + path)
+					create Result.make_failure ("Test failed: no value found at path: " + path.to_string_8)
 				end
 			else
 				create Result.make_failure ("Invalid path or value for test operation")

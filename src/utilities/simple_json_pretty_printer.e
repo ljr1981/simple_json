@@ -178,7 +178,7 @@ feature -- Visitor Pattern
 	visit_json_number (a_json_number: JSON_NUMBER)
 			-- Visit `a_json_number'
 		do
-			output.append (a_json_number.item)
+			output.append (a_json_number.item.to_string_32)
 		end
 
 	visit_json_object (a_json_object: JSON_OBJECT)
@@ -298,7 +298,7 @@ feature {NONE} -- Implementation
 						until
 							hex.count >= Hex_digit_count
 						loop
-							hex.prepend (Hex_padding_zero)
+							hex.prepend (Hex_padding_zero.to_string_8)
 						end
 						Result.append (hex.substring (hex.count - Hex_last_four_offset, hex.count))
 					else

@@ -79,10 +79,10 @@ feature -- Operations
 						create Result.make_failure ("Internal error in replace operation")
 					end
 				else
-					create Result.make_failure ("Target does not exist at path: " + path)
+					create Result.make_failure ("Target does not exist at path: " + path.to_string_8)
 				end
 			else
-				create Result.make_failure ("Invalid path: " + path)
+				create Result.make_failure ("Invalid path: " + path.to_string_8)
 			end
 		end
 

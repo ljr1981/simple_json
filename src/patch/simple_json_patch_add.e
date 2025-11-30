@@ -102,13 +102,13 @@ feature -- Operations
 								create Result.make_failure ("Invalid array index: " + l_key)
 							end
 						else
-							create Result.make_failure ("Parent is not a container at path: " + path)
+							create Result.make_failure ("Parent is not a container at path: " + path.to_string_8)
 						end
 					else
-						create Result.make_failure ("Parent not found or value missing for path: " + path)
+						create Result.make_failure ("Parent not found or value missing for path: " + path.to_string_8)
 					end
 				else
-					create Result.make_failure ("Invalid path: " + path)
+					create Result.make_failure ("Invalid path: " + path.to_string_8)
 				end
 			end
 		end

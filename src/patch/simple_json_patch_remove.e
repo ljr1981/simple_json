@@ -69,14 +69,14 @@ feature -- Operations
 			create l_pointer
 
 			if not l_pointer.parse_path (path) then
-				create Result.make_failure ("Invalid JSON Pointer path: " + path)
+				create Result.make_failure ("Invalid JSON Pointer path: " + path.to_string_8)
 			else
 				l_parent := l_pointer.navigate_to_parent (a_document)
 
 				check parent_navigation_succeeded: l_parent /= Void implies True end
 
 				if l_parent = Void then
-					create Result.make_failure ("Parent not found for path: " + path)
+					create Result.make_failure ("Parent not found for path: " + path.to_string_8)
 				else
 					l_key := l_pointer.last_segment
 
@@ -102,7 +102,7 @@ feature -- Operations
 							create Result.make_success (l_modified)
 						else
 							check key_does_not_exist_in_object: not l_parent.as_object.has_key (l_key) end
-							create Result.make_failure ("Property '" + l_key + "' does not exist at path: " + path)
+							create Result.make_failure ("Property '" + l_key.to_string_8 + "' does not exist at path: " + path.to_string_8)
 						end
 
 					elseif l_parent.is_array then
@@ -128,16 +128,16 @@ feature -- Operations
 								create Result.make_success (l_modified)
 							else
 								check index_out_of_bounds: l_index < 0 or l_index >= l_parent.as_array.count end
-								create Result.make_failure ("Array index " + l_index.out + " out of bounds at path: " + path)
+								create Result.make_failure ("Array index " + l_index.out + " out of bounds at path: " + path.to_string_8)
 							end
 						else
 							check key_not_valid_integer: not l_key.is_integer end
-							create Result.make_failure ("Invalid array index '" + l_key + "' at path: " + path)
+							create Result.make_failure ("Invalid array index '" + l_key.to_string_8 + "' at path: " + path.to_string_8)
 						end
 
 					else
 						check parent_neither_object_nor_array: not l_parent.is_object and not l_parent.is_array end
-						create Result.make_failure ("Parent is neither object nor array at path: " + path)
+						create Result.make_failure ("Parent is neither object nor array at path: " + path.to_string_8)
 					end
 				end
 			end

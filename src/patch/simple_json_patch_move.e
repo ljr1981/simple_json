@@ -93,10 +93,10 @@ feature -- Operations
 							create Result.make_failure ("Internal error creating remove operation")
 						end
 					else
-						create Result.make_failure ("Source value not found at path: " + l_from)
+						create Result.make_failure ("Source value not found at path: " + l_from.to_string_8)
 					end
 				else
-					create Result.make_failure ("Invalid from path: " + l_from)
+					create Result.make_failure ("Invalid from path: " + l_from.to_string_8)
 				end
 			else
 				create Result.make_failure ("No from path specified for move operation")

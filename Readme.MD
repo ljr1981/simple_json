@@ -295,7 +295,58 @@ query_example
     end
 ```
 
-### 7. Pretty Printing
+### 7. Entity Serialization Pattern
+
+Implement JSON serialization for your domain entities:
+
+```eiffel
+class
+    CUSTOMER
+
+inherit
+    SIMPLE_JSON_SERIALIZABLE
+
+feature -- JSON Serialization
+
+    to_json: SIMPLE_JSON_OBJECT
+        do
+            create Result.make
+            Result.put_integer (id, "id")
+            Result.put_string (name, "name")
+            Result.put_string (email, "email")
+        end
+
+feature -- JSON Deserialization
+
+    apply_json (a_json: SIMPLE_JSON_OBJECT)
+        do
+            if attached a_json.string_item ("name") as n then
+                name := n.to_string_8
+            end
+            if attached a_json.optional_string ("email") as e then
+                email := e.to_string_8
+            end
+        end
+
+feature -- Validation
+
+    json_has_required_fields (a_json: SIMPLE_JSON_OBJECT): BOOLEAN
+        do
+            Result := a_json.has_all_keys (<<"id", "name">>)
+        end
+
+end
+```
+
+**Convenience Features:**
+- `has_all_keys (<<"field1", "field2">>)` - Check multiple required fields at once
+- `missing_keys (array)` - Get list of missing required fields
+- `integer_32_item ("key")` - Direct INTEGER_32 extraction (no `.to_integer_32` needed)
+- `optional_string ("key")` - Returns detachable for optional fields
+- `optional_integer ("key", default)` - Returns default if key missing
+- `optional_boolean ("key", default)` - Returns default if key missing
+
+### 8. Pretty Printing
 
 Format JSON for readability:
 

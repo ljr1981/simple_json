@@ -169,6 +169,100 @@ feature -- Access (Unicode keys)
 			end
 		end
 
+feature -- Access (convenience - F4 friction fix)
+
+	integer_32_item (a_key: STRING_32): INTEGER_32
+			-- Get integer value for key as INTEGER_32 (returns 0 if not found or not a number).
+			-- Convenience to avoid `.to_integer_32` after every `integer_item` call.
+		require
+			key_not_empty: not a_key.is_empty
+			key_reasonable_length: a_key.count <= Max_reasonable_key_length
+		do
+			Result := integer_item (a_key).to_integer_32
+		end
+
+	natural_32_item (a_key: STRING_32): NATURAL_32
+			-- Get natural value for key as NATURAL_32 (returns 0 if not found or not a number).
+		require
+			key_not_empty: not a_key.is_empty
+			key_reasonable_length: a_key.count <= Max_reasonable_key_length
+		do
+			Result := integer_item (a_key).to_natural_32
+		end
+
+feature -- Access (optional - F5 friction fix)
+
+	optional_string (a_key: STRING_32): detachable STRING_32
+			-- Get string value if key exists, Void otherwise.
+			-- Same as string_item but name clarifies intent for optional fields.
+		require
+			key_not_empty: not a_key.is_empty
+			key_reasonable_length: a_key.count <= Max_reasonable_key_length
+		do
+			if has_key (a_key) then
+				Result := string_item (a_key)
+			end
+		end
+
+	optional_integer (a_key: STRING_32; a_default: INTEGER_64): INTEGER_64
+			-- Get integer value if key exists, `a_default` otherwise.
+		require
+			key_not_empty: not a_key.is_empty
+			key_reasonable_length: a_key.count <= Max_reasonable_key_length
+		do
+			if has_key (a_key) then
+				Result := integer_item (a_key)
+			else
+				Result := a_default
+			end
+		end
+
+	optional_boolean (a_key: STRING_32; a_default: BOOLEAN): BOOLEAN
+			-- Get boolean value if key exists, `a_default` otherwise.
+		require
+			key_not_empty: not a_key.is_empty
+			key_reasonable_length: a_key.count <= Max_reasonable_key_length
+		do
+			if has_key (a_key) then
+				Result := boolean_item (a_key)
+			else
+				Result := a_default
+			end
+		end
+
+feature -- Status report (multiple keys - F3 friction fix)
+
+	has_all_keys (a_keys: ARRAY [STRING_32]): BOOLEAN
+			-- Does object have all specified keys?
+		require
+			keys_not_void: a_keys /= Void
+		do
+			Result := across a_keys as k all has_key (k) end
+		end
+
+	has_any_key (a_keys: ARRAY [STRING_32]): BOOLEAN
+			-- Does object have at least one of the specified keys?
+		require
+			keys_not_void: a_keys /= Void
+		do
+			Result := across a_keys as k some has_key (k) end
+		end
+
+	missing_keys (a_keys: ARRAY [STRING_32]): ARRAYED_LIST [STRING_32]
+			-- Which of the specified keys are missing?
+		require
+			keys_not_void: a_keys /= Void
+		do
+			create Result.make (a_keys.count)
+			across a_keys as k loop
+				if not has_key (k) then
+					Result.extend (k)
+				end
+			end
+		ensure
+			result_attached: Result /= Void
+		end
+
 feature -- Element change (Fluent API)
 
 	put_string (a_value: STRING_32; a_key: STRING_32): SIMPLE_JSON_OBJECT

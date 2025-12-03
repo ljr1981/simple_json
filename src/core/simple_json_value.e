@@ -210,6 +210,24 @@ feature -- Array access
 			Result := as_array
 		end
 
+feature -- Output
+
+	as_json: STRING
+			-- JSON string representation (STRING_8)
+		do
+			Result := json_value.representation
+		ensure
+			result_attached: Result /= Void
+		end
+
+	as_json_32: STRING_32
+			-- JSON string representation (STRING_32)
+		do
+			Result := utf_converter.utf_8_string_8_to_string_32 (json_value.representation)
+		ensure
+			result_attached: Result /= Void
+		end
+
 feature -- Conversion
 
 	to_json_string: STRING_32

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>simple_json - JSON Parsing and Building for Eiffel</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/png" href="images/logo.png">
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <img src="images/logo.png" alt="simple_* logo" class="logo">
+        </div>
+        <h1>simple_json</h1>
+        <p class="tagline">High-Level JSON Parsing and Building for Eiffel</p>
+        <div class="badges">
+            <span class="badge badge-version">v1.0.0</span>
+            <span class="badge badge-license">MIT</span>
+        </div>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="#overview">Overview</a></li>
+            <li><a href="#quick-start">Quick Start</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="https://github.com/simple-eiffel/simple_json">GitHub</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <section id="overview">
+            <h2>Overview</h2>
+            <p>
+                <strong>simple_json</strong> is a production-ready JSON library for Eiffel that builds on
+                the standard eJSON library to provide modern features. It offers <strong>JSON Schema
+                validation</strong> (Draft 7), <strong>JSON Pointer</strong> navigation (RFC 6901),
+                <strong>JSON Patch</strong> operations (RFC 6902), <strong>JSON Merge Patch</strong>
+                (RFC 7386), <strong>JSONPath queries</strong>, and comprehensive error tracking.
+            </p>
+            <p>
+                Part of the <strong>simple_*</strong> ecosystem of focused, single-purpose Eiffel libraries.
+                Includes 29 HTML documentation files with EIS (F1 help) integration.
+            </p>
+        </section>
+
+        <section id="quick-start">
+            <h2>Quick Start</h2>
+
+            <div class="quick-start">
+                <h3>Installation</h3>
+                <p>Add to your ECF file:</p>
+<pre><code>&lt;library name="simple_json" location="$SIMPLE_JSON/simple_json.ecf"/&gt;</code></pre>
+            </div>
+
+            <h3>Parse &amp; Navigate</h3>
+<pre><code><span class="keyword">local</span>
+    value: <span class="type">SIMPLE_JSON_VALUE</span>
+    pointer: <span class="type">SIMPLE_JSON_POINTER</span>
+<span class="keyword">do</span>
+    value := json.parse (<span class="string">'{"users": [{"name": "Alice"}]}'</span>)
+    <span class="keyword">create</span> pointer.make_from_string (<span class="string">"/users/0/name"</span>)
+    print (pointer.value_at (value))  <span class="comment">-- "Alice"</span>
+<span class="keyword">end</span></code></pre>
+
+            <h3>Schema Validation</h3>
+<pre><code><span class="keyword">local</span>
+    validator: <span class="type">SIMPLE_JSON_SCHEMA_VALIDATOR</span>
+<span class="keyword">do</span>
+    <span class="keyword">create</span> validator.make_from_string (schema_text)
+    <span class="keyword">if</span> validator.validate_string (data).is_valid <span class="keyword">then</span>
+        <span class="comment">-- Valid JSON</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span></code></pre>
+        </section>
+
+        <section id="features">
+            <h2>Features</h2>
+            <ul>
+                <li><strong>JSON Schema Validation</strong> (Draft 7) - Only Eiffel library with this</li>
+                <li><strong>JSON Pointer</strong> (RFC 6901) - Path-based navigation</li>
+                <li><strong>JSON Patch</strong> (RFC 6902) - Standardized modifications</li>
+                <li><strong>JSON Merge Patch</strong> (RFC 7386) - Declarative merging</li>
+                <li><strong>JSONPath Queries</strong> - SQL-like queries for JSON</li>
+                <li><strong>Streaming Parser</strong> - Process large files efficiently</li>
+                <li><strong>Entity Serialization</strong> - SIMPLE_JSON_SERIALIZABLE pattern</li>
+                <li>216 tests, 100% coverage</li>
+                <li>Full Design by Contract support</li>
+            </ul>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 simple_* ecosystem. MIT License.</p>
+        <p><a href="https://github.com/simple-eiffel">GitHub</a></p>
+    </footer>
+</body>
+</html>

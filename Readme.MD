@@ -104,7 +104,7 @@ The project includes comprehensive HTML documentation with **integrated EIS link
 2. Or clone from GitHub:
 
 ```bash
-git clone https://github.com/ljr1981/simple_json.git
+git clone https://github.com/simple-eiffel/simple_json.git
 ```
 
 ### Basic Usage
@@ -750,8 +750,8 @@ MIT License - see [LICENSE](LICENSE) file for details.
 ## Contact
 
 - **Author:** Larry Rix
-- **Repository:** https://github.com/ljr1981/simple_json
-- **Issues:** https://github.com/ljr1981/simple_json/issues
+- **Repository:** https://github.com/simple-eiffel/simple_json
+- **Issues:** https://github.com/simple-eiffel/simple_json/issues
 
 ---
 

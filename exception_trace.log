@@ -1157,3 +1157,243 @@ EQA_EVALUATOR       root's creation
 -------------------------------------------------------------------------------
                        Routine failure.              Exit
 -------------------------------------------------------------------------------
+
+ec: system execution failed.
+Following is the set of recorded exceptions:
+
+******************************** Thread exception *****************************
+In thread           Root thread            0x0 (thread id)
+*******************************************************************************
+-------------------------------------------------------------------------------
+Class / Object      Routine                Nature of exception           Effect
+-------------------------------------------------------------------------------
+CONSOLE             put_string @4          FILE: unable to write STRING object.:
+<0000026DCCA03968>                         Runtime I/O error.            Fail
+-------------------------------------------------------------------------------
+CONSOLE             put_string @4                                       
+<0000026DCCA03968>                         Routine failure.              Fail
+-------------------------------------------------------------------------------
+CONSOLE             put_string_general @17                              
+<0000026DCCA03968>  (From PLAIN_TEXT_FILE) Routine failure.              Fail
+-------------------------------------------------------------------------------
+CONSOLE             put_string_32 @1                                    
+<0000026DCCA03968>  (From PLAIN_TEXT_FILE) Routine failure.              Fail
+-------------------------------------------------------------------------------
+EC_ENCODING_CONVERTER
+                    localized_print_error @4
+<0000026DCC81CBC8>  (From LOCALIZED_PRINTER)
+                                           Routine failure.              Fail
+-------------------------------------------------------------------------------
+DEGREE_OUTPUT       put_message @1                                      
+<0000026DCC953BC8>                         Routine failure.              Fail
+-------------------------------------------------------------------------------
+DEGREE_OUTPUT       put_string @1                                       
+<0000026DCC953BC8>                         Routine failure.              Fail
+-------------------------------------------------------------------------------
+DEGREE_OUTPUT       put_header @1                                       
+<0000026DCC953BC8>                         Routine failure.              Fail
+-------------------------------------------------------------------------------
+EWB_QUICK_MELT      print_header @1                                     
+<0000026DCCA02C78>  (From EWB_COMP)        Routine failure.              Fail
+-------------------------------------------------------------------------------
+EWB_QUICK_MELT      init @4                                             
+<0000026DCCA02C78>  (From EWB_COMP)        Routine failure.              Fail
+-------------------------------------------------------------------------------
+EWB_QUICK_MELT      execute @4                                          
+<0000026DCCA02C78>  (From EWB_COMP)        Routine failure.              Fail
+-------------------------------------------------------------------------------
+ES_BATCH            execute @45                                         
+<0000026DCD89FB98>  (From ES)              Routine failure.              Rescue
+-------------------------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ entering level 1 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------------------------------------------------------
+CONSOLE             put_string @4          FILE: unable to write STRING object.:
+<0000026DCCA03968>                         Runtime I/O error.            Fail
+-------------------------------------------------------------------------------
+CONSOLE             put_string @4                                       
+<0000026DCCA03968>                         Routine failure.              Fail
+-------------------------------------------------------------------------------
+CONSOLE             put_string_general @17                              
+<0000026DCCA03968>  (From PLAIN_TEXT_FILE) Routine failure.              Fail
+-------------------------------------------------------------------------------
+CONSOLE             put_string_32 @1                                    
+<0000026DCCA03968>  (From PLAIN_TEXT_FILE) Routine failure.              Fail
+-------------------------------------------------------------------------------
+ES_BATCH            localized_print_error @4
+<0000026DCD89FB98>  (From LOCALIZED_PRINTER)
+                                           Routine failure.              Fail
+-------------------------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ back to level 0 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------------------------------------------------------
+ES_BATCH            execute @69                                         
+<0000026DCD89FB98>  (From ES)              Exception in rescue clause.   Fail
+-------------------------------------------------------------------------------
+ES_BATCH            make @13                                            
+<0000026DCD89FB98>  (From ES)              Routine failure.              Fail
+-------------------------------------------------------------------------------
+EB_KERNEL           make @5                                             
+<0000026DCD745808>                         Routine failure.              Fail
+-------------------------------------------------------------------------------
+EB_KERNEL           root's creation                                     
+<0000026DCD745808>                         Routine failure.              Exit
+-------------------------------------------------------------------------------
+
+ec: system execution failed.
+Following is the set of recorded exceptions:
+
+******************************** Thread exception *****************************
+In thread           Root thread            0x0 (thread id)
+*******************************************************************************
+-------------------------------------------------------------------------------
+Class / Object      Routine                Nature of exception           Effect
+-------------------------------------------------------------------------------
+CONSOLE             put_string @4          FILE: unable to write STRING object.:
+<00000244CB21C8F8>                         Runtime I/O error.            Fail
+-------------------------------------------------------------------------------
+CONSOLE             put_string @4                                       
+<00000244CB21C8F8>                         Routine failure.              Fail
+-------------------------------------------------------------------------------
+CONSOLE             put_string_general @17                              
+<00000244CB21C8F8>  (From PLAIN_TEXT_FILE) Routine failure.              Fail
+-------------------------------------------------------------------------------
+CONSOLE             put_string_32 @1                                    
+<00000244CB21C8F8>  (From PLAIN_TEXT_FILE) Routine failure.              Fail
+-------------------------------------------------------------------------------
+EC_ENCODING_CONVERTER
+                    localized_print_error @4
+<00000244CB03A398>  (From LOCALIZED_PRINTER)
+                                           Routine failure.              Fail
+-------------------------------------------------------------------------------
+DEGREE_OUTPUT       put_message @1                                      
+<00000244CB1712B8>                         Routine failure.              Fail
+-------------------------------------------------------------------------------
+DEGREE_OUTPUT       put_string @1                                       
+<00000244CB1712B8>                         Routine failure.              Fail
+-------------------------------------------------------------------------------
+DEGREE_OUTPUT       put_header @1                                       
+<00000244CB1712B8>                         Routine failure.              Fail
+-------------------------------------------------------------------------------
+EWB_QUICK_MELT      print_header @1                                     
+<00000244CB21BC08>  (From EWB_COMP)        Routine failure.              Fail
+-------------------------------------------------------------------------------
+EWB_QUICK_MELT      init @4                                             
+<00000244CB21BC08>  (From EWB_COMP)        Routine failure.              Fail
+-------------------------------------------------------------------------------
+EWB_QUICK_MELT      execute @4                                          
+<00000244CB21BC08>  (From EWB_COMP)        Routine failure.              Fail
+-------------------------------------------------------------------------------
+ES_BATCH            execute @45                                         
+<00000244CC0B4C18>  (From ES)              Routine failure.              Rescue
+-------------------------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ entering level 1 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------------------------------------------------------
+CONSOLE             put_string @4          FILE: unable to write STRING object.:
+<00000244CB21C8F8>                         Runtime I/O error.            Fail
+-------------------------------------------------------------------------------
+CONSOLE             put_string @4                                       
+<00000244CB21C8F8>                         Routine failure.              Fail
+-------------------------------------------------------------------------------
+CONSOLE             put_string_general @17                              
+<00000244CB21C8F8>  (From PLAIN_TEXT_FILE) Routine failure.              Fail
+-------------------------------------------------------------------------------
+CONSOLE             put_string_32 @1                                    
+<00000244CB21C8F8>  (From PLAIN_TEXT_FILE) Routine failure.              Fail
+-------------------------------------------------------------------------------
+ES_BATCH            localized_print_error @4
+<00000244CC0B4C18>  (From LOCALIZED_PRINTER)
+                                           Routine failure.              Fail
+-------------------------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ back to level 0 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------------------------------------------------------
+ES_BATCH            execute @69                                         
+<00000244CC0B4C18>  (From ES)              Exception in rescue clause.   Fail
+-------------------------------------------------------------------------------
+ES_BATCH            make @13                                            
+<00000244CC0B4C18>  (From ES)              Routine failure.              Fail
+-------------------------------------------------------------------------------
+EB_KERNEL           make @5                                             
+<00000244CBF5A808>                         Routine failure.              Fail
+-------------------------------------------------------------------------------
+EB_KERNEL           root's creation                                     
+<00000244CBF5A808>                         Routine failure.              Exit
+-------------------------------------------------------------------------------
+
+ec: system execution failed.
+Following is the set of recorded exceptions:
+
+******************************** Thread exception *****************************
+In thread           Root thread            0x0 (thread id)
+*******************************************************************************
+-------------------------------------------------------------------------------
+Class / Object      Routine                Nature of exception           Effect
+-------------------------------------------------------------------------------
+CONSOLE             put_string @4          FILE: unable to write STRING object.:
+<0000024B533CBCB8>                         Runtime I/O error.            Fail
+-------------------------------------------------------------------------------
+CONSOLE             put_string @4                                       
+<0000024B533CBCB8>                         Routine failure.              Fail
+-------------------------------------------------------------------------------
+CONSOLE             put_string_general @17                              
+<0000024B533CBCB8>  (From PLAIN_TEXT_FILE) Routine failure.              Fail
+-------------------------------------------------------------------------------
+CONSOLE             put_string_32 @1                                    
+<0000024B533CBCB8>  (From PLAIN_TEXT_FILE) Routine failure.              Fail
+-------------------------------------------------------------------------------
+EC_ENCODING_CONVERTER
+                    localized_print_error @4
+<0000024B5538EEC8>  (From LOCALIZED_PRINTER)
+                                           Routine failure.              Fail
+-------------------------------------------------------------------------------
+DEGREE_OUTPUT       put_message @1                                      
+<0000024B553D6D88>                         Routine failure.              Fail
+-------------------------------------------------------------------------------
+DEGREE_OUTPUT       put_string @1                                       
+<0000024B553D6D88>                         Routine failure.              Fail
+-------------------------------------------------------------------------------
+DEGREE_OUTPUT       put_header @1                                       
+<0000024B553D6D88>                         Routine failure.              Fail
+-------------------------------------------------------------------------------
+EWB_QUICK_MELT      print_header @1                                     
+<0000024B533CB598>  (From EWB_COMP)        Routine failure.              Fail
+-------------------------------------------------------------------------------
+EWB_QUICK_MELT      init @4                                             
+<0000024B533CB598>  (From EWB_COMP)        Routine failure.              Fail
+-------------------------------------------------------------------------------
+EWB_QUICK_MELT      execute @4                                          
+<0000024B533CB598>  (From EWB_COMP)        Routine failure.              Fail
+-------------------------------------------------------------------------------
+ES_BATCH            execute @45                                         
+<0000024B544187E8>  (From ES)              Routine failure.              Rescue
+-------------------------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ entering level 1 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------------------------------------------------------
+CONSOLE             put_string @4          FILE: unable to write STRING object.:
+<0000024B533CBCB8>                         Runtime I/O error.            Fail
+-------------------------------------------------------------------------------
+CONSOLE             put_string @4                                       
+<0000024B533CBCB8>                         Routine failure.              Fail
+-------------------------------------------------------------------------------
+CONSOLE             put_string_general @17                              
+<0000024B533CBCB8>  (From PLAIN_TEXT_FILE) Routine failure.              Fail
+-------------------------------------------------------------------------------
+CONSOLE             put_string_32 @1                                    
+<0000024B533CBCB8>  (From PLAIN_TEXT_FILE) Routine failure.              Fail
+-------------------------------------------------------------------------------
+ES_BATCH            localized_print_error @4
+<0000024B544187E8>  (From LOCALIZED_PRINTER)
+                                           Routine failure.              Fail
+-------------------------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ back to level 0 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------------------------------------------------------
+ES_BATCH            execute @69                                         
+<0000024B544187E8>  (From ES)              Exception in rescue clause.   Fail
+-------------------------------------------------------------------------------
+ES_BATCH            make @13                                            
+<0000024B544187E8>  (From ES)              Routine failure.              Fail
+-------------------------------------------------------------------------------
+EB_KERNEL           make @5                                             
+<0000024B542BE808>                         Routine failure.              Fail
+-------------------------------------------------------------------------------
+EB_KERNEL           root's creation                                     
+<0000024B542BE808>                         Routine failure.              Exit
+-------------------------------------------------------------------------------

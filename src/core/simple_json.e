@@ -20,7 +20,14 @@ inherit
 
 feature -- Parsing
 
-	parse (a_json_text: STRING_32): detachable SIMPLE_JSON_VALUE
+	parse,
+	decode,
+	deserialize,
+	load_json,
+	from_string,
+	parse_response,
+	decode_payload,
+	parse_message (a_json_text: STRING_32): detachable SIMPLE_JSON_VALUE
 			-- Parse JSON text and return a SIMPLE_JSON_VALUE wrapper.
 			-- On error, returns Void and populates `last_errors' with details.
 		require
@@ -64,7 +71,11 @@ feature -- Parsing
 			errors_cleared_on_success: Result /= Void implies not has_errors
 		end
 
-	parse_file (a_file_path: STRING_32): detachable SIMPLE_JSON_VALUE
+	parse_file,
+	load_config,
+	read_json_file,
+	load_from_file,
+	deserialize_file (a_file_path: STRING_32): detachable SIMPLE_JSON_VALUE
 			-- Parse JSON from file and return a SIMPLE_JSON_VALUE wrapper.
 			-- On error, returns Void and populates `last_errors' with details.
 		require
@@ -199,19 +210,33 @@ feature -- Error Tracking
 
 feature -- Building
 
-	new_object: SIMPLE_JSON_OBJECT
+	new_object,
+	create_object,
+	empty_object,
+	json_object,
+	build_object,
+	map,
+	dictionary: SIMPLE_JSON_OBJECT
 			-- Create a new JSON object builder
 		do
 			create Result.make
 		end
 
-	new_array: SIMPLE_JSON_ARRAY
+	new_array,
+	create_array,
+	empty_array,
+	json_array,
+	list,
+	collection: SIMPLE_JSON_ARRAY
 			-- Create a new JSON array builder
 		do
 			create Result.make
 		end
 
-	string_value (a_string: STRING_32): SIMPLE_JSON_VALUE
+	string_value,
+	text_value,
+	str,
+	json_string (a_string: STRING_32): SIMPLE_JSON_VALUE
 			-- Create a JSON string value
 		local
 			l_json_string: JSON_STRING
@@ -220,7 +245,11 @@ feature -- Building
 			create Result.make (l_json_string)
 		end
 
-	number_value (a_number: DOUBLE): SIMPLE_JSON_VALUE
+	number_value,
+	float_value,
+	real_value,
+	double_value,
+	json_number (a_number: DOUBLE): SIMPLE_JSON_VALUE
 			-- Create a JSON number value
 		local
 			l_json_number: JSON_NUMBER
@@ -229,7 +258,10 @@ feature -- Building
 			create Result.make (l_json_number)
 		end
 
-	integer_value (a_integer: INTEGER_64): SIMPLE_JSON_VALUE
+	integer_value,
+	int_value,
+	whole_number,
+	json_integer (a_integer: INTEGER_64): SIMPLE_JSON_VALUE
 			-- Create a JSON integer value
 		local
 			l_json_number: JSON_NUMBER
@@ -238,7 +270,10 @@ feature -- Building
 			create Result.make (l_json_number)
 		end
 
-	boolean_value (a_boolean: BOOLEAN): SIMPLE_JSON_VALUE
+	boolean_value,
+	bool_value,
+	flag_value,
+	json_boolean (a_boolean: BOOLEAN): SIMPLE_JSON_VALUE
 			-- Create a JSON boolean value
 		local
 			l_json_boolean: JSON_BOOLEAN
@@ -247,7 +282,9 @@ feature -- Building
 			create Result.make (l_json_boolean)
 		end
 
-	null_value: SIMPLE_JSON_VALUE
+	null_value,
+	nothing_value,
+	json_null: SIMPLE_JSON_VALUE
 			-- Create a JSON null value
 		local
 			l_json_null: JSON_NULL

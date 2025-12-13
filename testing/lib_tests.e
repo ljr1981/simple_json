@@ -118,10 +118,10 @@ feature -- Test: Generation
 			obj: SIMPLE_JSON_OBJECT
 		do
 			create obj.make
-			obj.put_string ("name", "Bob")
-			obj.put_integer ("age", 25)
-			assert_string_contains ("has name", obj.to_json, "%"name%"")
-			assert_string_contains ("has age", obj.to_json, "%"age%"")
+			obj.put_string ("Bob", "name").do_nothing
+			obj.put_integer (25, "age").do_nothing
+			assert_string_contains ("has name", obj.to_json_string, "%"name%"")
+			assert_string_contains ("has age", obj.to_json_string, "%"age%"")
 		end
 
 	test_to_json_array
@@ -132,10 +132,10 @@ feature -- Test: Generation
 			arr: SIMPLE_JSON_ARRAY
 		do
 			create arr.make
-			arr.add_integer (1)
-			arr.add_integer (2)
-			arr.add_integer (3)
-			assert_strings_equal ("array json", "[1,2,3]", arr.to_json)
+			arr.add_integer (1).do_nothing
+			arr.add_integer (2).do_nothing
+			arr.add_integer (3).do_nothing
+			assert_strings_equal ("array json", "[1,2,3]", arr.to_json_string)
 		end
 
 feature -- Test: Object Operations
@@ -148,7 +148,7 @@ feature -- Test: Object Operations
 			obj: SIMPLE_JSON_OBJECT
 		do
 			create obj.make
-			obj.put_string ("key1", "value1")
+			obj.put_string ("value1", "key1").do_nothing
 			assert_true ("has key1", obj.has_key ("key1"))
 			assert_false ("no key2", obj.has_key ("key2"))
 		end
@@ -161,7 +161,7 @@ feature -- Test: Object Operations
 			obj: SIMPLE_JSON_OBJECT
 		do
 			create obj.make
-			obj.put_string ("key", "value")
+			obj.put_string ("value", "key").do_nothing
 			assert_true ("has key", obj.has_key ("key"))
 			obj.remove ("key")
 			assert_false ("key removed", obj.has_key ("key"))
@@ -178,7 +178,7 @@ feature -- Test: Array Operations
 		do
 			create arr.make
 			assert_integers_equal ("empty", 0, arr.count)
-			arr.add_string ("item")
+			arr.add_string ("item").do_nothing
 			assert_integers_equal ("one item", 1, arr.count)
 		end
 
@@ -191,7 +191,7 @@ feature -- Test: Array Operations
 		do
 			create arr.make
 			assert_true ("initially empty", arr.is_empty)
-			arr.add_integer (1)
+			arr.add_integer (1).do_nothing
 			assert_false ("not empty after add", arr.is_empty)
 		end
 
@@ -206,7 +206,7 @@ feature -- Test: Error Handling
 		do
 			create json
 			assert_void ("invalid json", json.parse ("{invalid}"))
-			assert_true ("has error", json.has_error)
+			assert_true ("has error", json.has_errors)
 		end
 
 	test_parse_empty_string
@@ -217,7 +217,7 @@ feature -- Test: Error Handling
 			json: SIMPLE_JSON
 		do
 			create json
-			assert_void ("empty string", json.parse (""))
+			if attached json.parse ("") then assert_true ("should be void", False) else assert_true ("empty returns void", True) end
 		end
 
 end

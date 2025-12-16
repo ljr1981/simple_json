@@ -80,14 +80,14 @@ end
 
 ## Installation
 
-1. Set environment variable:
-```bash
-export SIMPLE_JSON=/path/to/simple_json
+1. Set the ecosystem environment variable (one-time setup for all simple_* libraries):
+```
+SIMPLE_EIFFEL=D:\prod
 ```
 
 2. Add to ECF:
 ```xml
-<library name="simple_json" location="$SIMPLE_JSON/simple_json.ecf"/>
+<library name="simple_json" location="$SIMPLE_EIFFEL/simple_json/simple_json.ecf"/>
 ```
 
 ## Dependencies

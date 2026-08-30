@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIMPLE_JSON_TEXT - SIMPLE_JSON Documentation</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .header h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        .header .subtitle { font-size: 1.2rem; opacity: 0.9; }
+        .nav {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .nav a {
+            color: #667eea;
+            text-decoration: none;
+            margin-right: 2rem;
+            font-weight: 500;
+        }
+        .nav a:hover { text-decoration: underline; }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .section {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 0.5rem;
+        }
+        .section h3 {
+            color: #764ba2;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 1.5rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        .code-inline {
+            background: #f0f0f0;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #d63384;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+        tr:hover { background: #f8f9fa; }
+        .tip {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+        ul, ol { margin-left: 2rem; margin-bottom: 1rem; }
+        li { margin-bottom: 0.5rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>SIMPLE_JSON_TEXT</h1>
+        <div class="subtitle">Unicode-correct string text: emoji-safe escaping and decoding (0.2.0)</div>
+    </div>
+
+    <div class="nav">
+        <a href="../index.html">&larr; Home</a>
+        <a href="#overview">Overview</a>
+        <a href="#api">API</a>
+        <a href="#examples">Examples</a>
+    </div>
+
+    <div class="container">
+
+<div class="section" id="overview">
+    <h2>Overview</h2>
+    <p>
+        <code class="code-inline">SIMPLE_JSON_TEXT</code> escapes text into the content of a JSON string literal and decodes it back,
+        for every Unicode code point. Since 0.2.0 every <code class="code-inline">put_string</code>, <code class="code-inline">add_string</code>,
+        <code class="code-inline">json_string</code>, <code class="code-inline">string_item</code> and <code class="code-inline">as_string_32</code> goes through it.
+    </p>
+    <p>It exists because the underlying ejson library gets two things wrong:</p>
+    <ul>
+        <li>A character beyond the Basic Multilingual Plane - every emoji, e.g. U+1F916 - was written as a five-digit
+            <code class="code-inline">\u1F916</code>, which is not JSON and which ejson's own decoder read back as U+1F91 followed by <code class="code-inline">6</code>.
+            Non-ASCII text now goes out as raw UTF-8, which RFC 8259 requires every consumer to accept.</li>
+        <li>A surrogate-pair escape (<code class="code-inline">\ud83e\udd16</code>, as emitted by Python's <code class="code-inline">json</code>, older Java and
+            <code class="code-inline">JSON.stringify</code>) was decoded as two lone surrogates. The pair is now combined into the one character it encodes.</li>
+    </ul>
+    <div class="tip">
+        <strong>How it was found:</strong> <code class="code-inline">SIMPLE_JSON_OBJECT.put_string</code>'s <code class="code-inline">value_stored</code>
+        postcondition failed the moment a chat message beginning with the robot emoji was stored (2026-08-29). Contracts caught it; independent vectors now pin it.
+    </div>
+</div>
+
+<div class="section" id="api">
+    <h2>API Reference</h2>
+    <table>
+        <tr><th>Feature</th><th>Description</th></tr>
+        <tr><td><code>escaped (a_text): STRING_8</code></td><td>The literal's content for <code>a_text</code>: quote, backslash and controls escaped; everything else raw UTF-8. Postcondition: decodes back to <code>a_text</code>.</td></tr>
+        <tr><td><code>decoded (a_literal): STRING_32</code></td><td>The text a literal's content denotes: standard escapes, <code>\uXXXX</code> with surrogate pairs combined, raw UTF-8; a byte that is none of these is kept as Latin-1 rather than lost.</td></tr>
+        <tr><td><code>json_string (a_text): JSON_STRING</code></td><td>An ejson string value escaped here, not by ejson.</td></tr>
+        <tr><td><code>unescaped (a_json): STRING_32</code></td><td>The text an ejson string denotes, surrogate pairs combined.</td></tr>
+    </table>
+</div>
+
+<div class="section" id="examples">
+    <h2>Examples</h2>
+    <div class="code-block">create o.make
+o.put_string ({STRING_32} "%/0x1F916/ shalom", "s").do_nothing
+-- o.string_item ("s") is the same 8-character string; its first code is 0x1F916
+-- o.to_json_string carries the emoji as four raw UTF-8 bytes: F0 9F A4 96</div>
+    <p>Vectors: <code class="code-inline">testing/test_unicode_text.e</code> (astral round trip, surrogate escapes, controls, U+10000 and U+10FFFF).</p>
+</div>
+
+    </div>
+
+    <div style="text-align: center; padding: 2rem; color: #666; border-top: 1px solid #ddd; margin-top: 3rem;">
+        <p><strong>SIMPLE_JSON</strong> Documentation</p>
+        <p>Copyright &copy; 2024-2026 Larry Rix &bull; MIT License</p>
+    </div>
+</body>
+</html>

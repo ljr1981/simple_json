@@ -15,7 +15,7 @@ Part of the [Simple Eiffel](https://github.com/simple-eiffel) ecosystem.
 ## Status
 
 ✅ **Production Ready** — v1.0.0
-- 216 tests passing, 100% coverage
+- 265 tests passing, 100% coverage
 - JSON Schema Draft 7 validation
 - Full RFC compliance (6901, 6902, 7386)
 - Design by Contract throughout
@@ -77,7 +77,7 @@ end
 - **JSON Merge Patch** (RFC 7386) - Declarative document merging
 - **JSONPath Queries** - SQL-like queries: "$.users[*].name"
 - **Streaming Parser** - Process gigabyte files with constant memory
-- **Full Unicode** - UTF-8/UTF-16 through STRING_32
+- **Full Unicode** - every code point, emoji included, survives put/get and serialize/parse; since 0.2.0 `SIMPLE_JSON_TEXT` escapes and decodes all string text (ejson's own escaper is bypassed - it breaks beyond U+FFFF - and surrogate-pair escapes are combined)
 - **Decimal Precision** - Exact decimal values via simple_decimal (no floating-point artifacts)
 
 ## Installation

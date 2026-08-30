@@ -242,7 +242,7 @@ feature -- Building
 		local
 			l_json_string: JSON_STRING
 		do
-			create l_json_string.make_from_string_32 (a_string)
+			l_json_string := text.json_string (a_string)
 			create Result.make (l_json_string)
 		end
 
@@ -871,6 +871,14 @@ feature {NONE} -- Type references (for `like` anchors only)
 		require
 			type_ref_only_never_call: False
 		attribute
+		end
+
+feature {NONE} -- Text codec
+
+	text: SIMPLE_JSON_TEXT
+			-- Escapes and decodes string text for all of Unicode (ejson's own escaper breaks beyond the BMP).
+		once
+			create Result
 		end
 
 invariant

@@ -84,7 +84,7 @@ feature -- String access (STRING_32 only)
 			is_string: is_string
 		do
 			if attached {JSON_STRING} json_value as al_l_string then
-				Result := al_l_string.unescaped_string_32
+				Result := text.unescaped (al_l_string)
 			else
 				create Result.make_empty
 			end
@@ -325,6 +325,14 @@ feature {NONE} -- Implementation
 		do
 			create l_zstring.make_from_utf_8 (a_utf8)
 			Result := l_zstring.to_string_32
+		end
+
+feature {NONE} -- Text codec
+
+	text: SIMPLE_JSON_TEXT
+			-- Escapes and decodes string text for all of Unicode (ejson's own escaper breaks beyond the BMP).
+		once
+			create Result
 		end
 
 invariant

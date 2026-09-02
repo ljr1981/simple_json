@@ -87,7 +87,7 @@ feature -- Status report
 		local
 			l_json_key: JSON_STRING
 		do
-			create l_json_key.make_from_string_32 (a_key)
+			l_json_key := text.json_string (a_key)
 			Result := json_value.has_key (l_json_key)
 		end
 
@@ -101,7 +101,7 @@ feature -- Access (Unicode keys)
 		local
 			l_json_key: JSON_STRING
 		do
-			create l_json_key.make_from_string_32 (a_key)
+			l_json_key := text.json_string (a_key)
 			if attached json_value.item (l_json_key) as al_l_value then
 				create Result.make (al_l_value)
 			end
@@ -312,8 +312,8 @@ feature -- Element change (Fluent API)
 			l_json_key: JSON_STRING
 			l_json_value: JSON_STRING
 		do
-			create l_json_key.make_from_string_32 (a_key)
-			create l_json_value.make_from_string_32 (a_value)
+			l_json_key := text.json_string (a_key)
+			l_json_value := text.json_string (a_value)
 			json_value.replace (l_json_value, l_json_key)
 			Result := Current
 		ensure
@@ -331,7 +331,7 @@ feature -- Element change (Fluent API)
 		local
 			l_json_key: JSON_STRING
 		do
-			create l_json_key.make_from_string_32 (a_key)
+			l_json_key := text.json_string (a_key)
 			json_value.replace_with_integer (a_value, l_json_key)
 			Result := Current
 		ensure
@@ -349,7 +349,7 @@ feature -- Element change (Fluent API)
 		local
 			l_json_key: JSON_STRING
 		do
-			create l_json_key.make_from_string_32 (a_key)
+			l_json_key := text.json_string (a_key)
 			json_value.replace_with_real (a_value, l_json_key)
 			Result := Current
 		ensure
@@ -370,7 +370,7 @@ feature -- Element change (Fluent API)
 			l_json_key: JSON_STRING
 			l_json_decimal: JSON_DECIMAL
 		do
-			create l_json_key.make_from_string_32 (a_key)
+			l_json_key := text.json_string (a_key)
 			create l_json_decimal.make_decimal (a_value)
 			json_value.replace (l_json_decimal, l_json_key)
 			Result := Current
@@ -388,7 +388,7 @@ feature -- Element change (Fluent API)
 		local
 			l_json_key: JSON_STRING
 		do
-			create l_json_key.make_from_string_32 (a_key)
+			l_json_key := text.json_string (a_key)
 			json_value.replace_with_boolean (a_value, l_json_key)
 			Result := Current
 		ensure
@@ -407,7 +407,7 @@ feature -- Element change (Fluent API)
 			l_json_key: JSON_STRING
 			l_json_null: JSON_NULL
 		do
-			create l_json_key.make_from_string_32 (a_key)
+			l_json_key := text.json_string (a_key)
 			create l_json_null
 			json_value.replace (l_json_null, l_json_key)
 			Result := Current
@@ -427,7 +427,7 @@ feature -- Element change (Fluent API)
 		local
 			l_json_key: JSON_STRING
 		do
-			create l_json_key.make_from_string_32 (a_key)
+			l_json_key := text.json_string (a_key)
 			json_value.replace (a_value.json_value, l_json_key)
 			Result := Current
 		ensure
@@ -447,7 +447,7 @@ feature -- Element change (Fluent API)
 		local
 			l_json_key: JSON_STRING
 		do
-			create l_json_key.make_from_string_32 (a_key)
+			l_json_key := text.json_string (a_key)
 			json_value.replace (a_value.json_value, l_json_key)
 			Result := Current
 		ensure
@@ -467,7 +467,7 @@ feature -- Element change (Fluent API)
 		local
 			l_json_key: JSON_STRING
 		do
-			create l_json_key.make_from_string_32 (a_key)
+			l_json_key := text.json_string (a_key)
 			json_value.replace (a_value.json_value, l_json_key)
 			Result := Current
 		ensure
@@ -486,7 +486,7 @@ feature -- Removal
 		local
 			l_json_key: JSON_STRING
 		do
-			create l_json_key.make_from_string_32 (a_key)
+			l_json_key := text.json_string (a_key)
 			json_value.remove (l_json_key)
 		ensure
 			key_removed: not has_key (a_key)

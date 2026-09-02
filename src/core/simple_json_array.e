@@ -191,7 +191,7 @@ feature -- Element change (Fluent API)
 		local
 			l_json_string: JSON_STRING
 		do
-			create l_json_string.make_from_string_32 (a_value)
+			l_json_string := text.json_string (a_value)
 			json_value.add (l_json_string)
 			Result := Current
 		ensure
